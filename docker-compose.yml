@@ -1,0 +1,16 @@
+services:
+  sbm-integration:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: sbm-integration
+    restart: unless-stopped
+    environment:
+      - PUID=1005
+      - PGID=1005
+      - TZ=Europe/Budapest
+    deploy:
+        resources:
+            limits:
+              cpus: "1.0"
+              memory: 1024M

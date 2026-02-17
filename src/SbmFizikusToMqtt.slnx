@@ -1,0 +1,14 @@
+<Solution>
+    <Project Path="SbmFizikusToMqtt.Application.Tests/SbmFizikusToMqtt.Application.Tests.csproj"/>
+    <Project Path="SbmFizikusToMqtt.Application/SbmFizikusToMqtt.Application.csproj"/>
+    <Project Path="SbmFizikusToMqtt.Domain/SbmFizikusToMqtt.Domain.csproj"/>
+    <Project
+        Path="SbmFizikusToMqtt.HomeAssistantAutoDiscovery.Tests/SbmFizikusToMqtt.HomeAssistantAutoDiscovery.Tests.csproj"/>
+    <Project Path="SbmFizikusToMqtt.HomeAssistantAutoDiscovery/SbmFizikusToMqtt.HomeAssistantAutoDiscovery.csproj"/>
+    <Project Path="SbmFizikusToMqtt.MqttConnector.Domain/SbmFizikusToMqtt.MqttConnector.Domain.csproj"/>
+    <Project Path="SbmFizikusToMqtt.MqttConnector.Tests/SbmFizikusToMqtt.MqttConnector.Tests.csproj"/>
+    <Project Path="SbmFizikusToMqtt.MqttConnector/SbmFizikusToMqtt.MqttConnector.csproj"/>
+    <Project Path="SbmFizikusToMqtt.SbmConnector.Tests/SbmFizikusToMqtt.SbmConnector.Tests.csproj"/>
+    <Project Path="SbmFizikusToMqtt.SbmConnector/SbmFizikusToMqtt.SbmConnector.csproj"/>
+    <Project Path="SbmFizikusToMqtt.Web/SbmFizikusToMqtt.Web.csproj"/>
+</Solution>
