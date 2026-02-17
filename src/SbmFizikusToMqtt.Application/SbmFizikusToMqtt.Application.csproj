@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\SbmFizikusToMqtt.Domain\SbmFizikusToMqtt.Domain.csproj"/>
+        <ProjectReference Include="..\SbmFizikusToMqtt.MqttConnector\SbmFizikusToMqtt.MqttConnector.csproj"/>
+        <ProjectReference Include="..\SbmFizikusToMqtt.SbmConnector\SbmFizikusToMqtt.SbmConnector.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="$(AssemblyName).Tests"/>
+        <InternalsVisibleTo Include="DynamicProxyGenAssembly2"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="TickerQ" Version="10.1.1"/>
+    </ItemGroup>
+
+</Project>

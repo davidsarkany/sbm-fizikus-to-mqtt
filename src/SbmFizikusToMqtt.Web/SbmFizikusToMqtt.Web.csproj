@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="TickerQ" Version="10.1.1"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\SbmFizikusToMqtt.Application\SbmFizikusToMqtt.Application.csproj"/>
+        <ProjectReference Include="..\SbmFizikusToMqtt.Domain\SbmFizikusToMqtt.Domain.csproj"/>
+        <ProjectReference Include="..\SbmFizikusToMqtt.HomeAssistantAutoDiscovery\SbmFizikusToMqtt.HomeAssistantAutoDiscovery.csproj"/>
+        <ProjectReference Include="..\SbmFizikusToMqtt.MqttConnector\SbmFizikusToMqtt.MqttConnector.csproj"/>
+        <ProjectReference Include="..\SbmFizikusToMqtt.SbmConnector\SbmFizikusToMqtt.SbmConnector.csproj"/>
+    </ItemGroup>
+
+</Project>

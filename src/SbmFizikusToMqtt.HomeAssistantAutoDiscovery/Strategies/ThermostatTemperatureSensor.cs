@@ -1,0 +1,39 @@
+﻿using System.Text.Json;
+using SbmFizikusToMqtt.Domain;
+using SbmFizikusToMqtt.HomeAssistantAutoDiscovery.Interfaces;
+using SbmFizikusToMqtt.HomeAssistantAutoDiscovery.Models;
+using SbmFizikusToMqtt.MqttConnector.Domain;
+
+namespace SbmFizikusToMqtt.HomeAssistantAutoDiscovery.Strategies;
+
+internal sealed class ThermostatTemperatureSensor(string sbmTopic, string homeAssistantTopic)
+    : IThermostatDiscoveryStrategy
+{
+    public MqttMessage CreatePayload(Thermostat thermostat)
+    {
+        var payload = new SensorAutoDiscovery
+        {
+            Availability =
+            [
+                new Availability
+                {
+                    Topic = $"{sbmTopic}/bridge/state",
+                    ValueTemplate = "{{ value_json.state }}"
+                }
+            ],
+            DeviceClass = "temperature",
+            Name = thermostat.Name == null ? null : thermostat.Name + "_temperature",
+            StateClass = "measurement",
+            StateTopic = $"{sbmTopic}/devices/{thermostat.Id}",
+            UniqueId = $"sbm_fizikus-{thermostat.Id}_temperature",
+            UnitOfMeasurement = "°C",
+            ValueTemplate = "{{ value_json.temperature }}"
+        };
+
+        return new MqttMessage
+        {
+            Topic = $"{homeAssistantTopic}/sensor/sbm_fizikus-sensors-{thermostat.Id}/temperature/config",
+            Payload = JsonSerializer.Serialize(payload)
+        };
+    }
+}
