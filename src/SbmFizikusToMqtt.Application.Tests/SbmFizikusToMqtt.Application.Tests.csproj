@@ -39,8 +39,4 @@
         <ProjectReference Include="..\SbmFizikusToMqtt.SbmConnector\SbmFizikusToMqtt.SbmConnector.csproj"/>
     </ItemGroup>
 
-    <ItemGroup>
-        <Folder Include="BackgroundJobs\"/>
-    </ItemGroup>
-
 </Project>
