@@ -18,8 +18,11 @@ internal sealed class MqttListener(
     ILogger<MqttListener> logger)
     : BackgroundService
 {
+    private CancellationToken _stoppingToken;
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        _stoppingToken = stoppingToken;
         // Wait for the MQTT client to be connected before subscribing
         while (!mqttClient.IsConnected && !stoppingToken.IsCancellationRequested)
         {
@@ -75,9 +78,9 @@ internal sealed class MqttListener(
             if (logger.IsEnabled(LogLevel.Information))
                 logger.LogInformation("Changing temperature for thermostat {ThermostatId} to {Temperature}", request.Id, request.Value);
             
-            await apartmentService.ChangeTemperature(request.Id, request.Value);
-            var apartment = await apartmentService.GetApartmentInfo();
-            await publisher.Publish(apartment);
+            await apartmentService.ChangeTemperature(request.Id, request.Value, _stoppingToken);
+            var apartment = await apartmentService.GetApartmentInfo(_stoppingToken);
+            await publisher.Publish(apartment, _stoppingToken);
         }
         catch (JsonException ex)
         {
