@@ -1,6 +1,6 @@
 ﻿namespace SbmFizikusToMqtt.SbmConnector.Models.Response;
 
-internal record SbmGetBuildingAccessRightsResponse
+internal sealed record SbmGetBuildingAccessRightsResponse
 {
     public required int BuildingId { get; init; }
 

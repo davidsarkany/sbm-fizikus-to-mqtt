@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace SbmFizikusToMqtt.SbmConnector.Models.Requests;
 
-internal record SbmApartmentListRequest
+internal sealed record SbmApartmentListRequest
 {
     [SetsRequiredMembers]
     public SbmApartmentListRequest(string buildingId, string jwtToken)
