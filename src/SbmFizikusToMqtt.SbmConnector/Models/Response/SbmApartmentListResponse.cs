@@ -8,6 +8,6 @@ internal sealed record SbmApartmentListResponse
 {
     public required int BuildingId { get; init; }
     public required int ApartmentId { get; init; }
-    public required string Name { get; init; } = string.Empty;
+    public required string Name { get; init; }
     public required bool IsOnline { get; init; }
 }

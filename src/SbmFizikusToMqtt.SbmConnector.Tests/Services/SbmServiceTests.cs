@@ -4,7 +4,6 @@ using System.Text.Json;
 using Moq;
 using Moq.Protected;
 using SbmFizikusToMqtt.SbmConnector.Exceptions;
-using SbmFizikusToMqtt.SbmConnector.Interfaces;
 using SbmFizikusToMqtt.SbmConnector.Models.Response;
 using SbmFizikusToMqtt.SbmConnector.Services;
 
@@ -59,7 +58,7 @@ public class SbmServiceTests
         Assert.NotNull(result);
         Assert.Equal(expectedResponse.AccessToken, result.AccessToken);
         Assert.Equal(expectedResponse.RefreshToken, result.RefreshToken);
-        Assert.Equal(expectedResponse.Rights.Count, result.Rights.Count);
+        Assert.Equal(expectedResponse.Rights.Count(), result.Rights.Count());
         VerifyHttpRequest(HttpMethod.Put, "/frontend", Times.Once());
     }
 
@@ -88,7 +87,7 @@ public class SbmServiceTests
         // Act & Assert
         var exception =
             await Assert.ThrowsAsync<SbmInvalidResponseException>(() => _sbmService.GetToken(username, password));
-        Assert.Contains("null response", exception.Message);
+        Assert.Contains("login failed", exception.Message);
     }
 
     [Fact]
@@ -296,7 +295,7 @@ public class SbmServiceTests
         // Act & Assert
         var exception = await Assert.ThrowsAsync<SbmInvalidResponseException>(() =>
             _sbmService.ChangeTemperature(thermostatId, temperature, token));
-        Assert.Contains("Invalid JSON", exception.Message);
+        Assert.Contains("deserialize failed", exception.Message);
     }
 
     [Fact]
@@ -384,7 +383,7 @@ public class SbmServiceTests
         Assert.Equal(expectedResponse.ForwardWaterTemperature1DegC, result.ForwardWaterTemperature1DegC);
         Assert.Equal(expectedResponse.FwVer, result.FwVer);
         Assert.Single(result.Thermostats);
-        Assert.Equal("Living Room", result.Thermostats[0].Name);
+        Assert.Equal("Living Room", result.Thermostats.First().Name);
         Assert.True(result.CommunicationActiveRelayModule);
         VerifyHttpRequest(HttpMethod.Put, "/frontend", Times.Once());
     }
@@ -401,7 +400,7 @@ public class SbmServiceTests
         var exception =
             await Assert.ThrowsAsync<SbmInvalidResponseException>(() =>
                 _sbmService.GetApartmentInfo(apartmentId, token));
-        Assert.Contains("Invalid JSON", exception.Message);
+        Assert.Contains("get apartment info failed", exception.Message);
     }
 
     [Fact]

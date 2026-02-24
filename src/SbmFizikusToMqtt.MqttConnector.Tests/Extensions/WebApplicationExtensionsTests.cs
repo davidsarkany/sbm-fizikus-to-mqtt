@@ -29,22 +29,6 @@ public sealed class WebApplicationExtensionsTests
         _testOutputHelper = testOutputHelper;
     }
 
-    [Fact]
-    public void ConfigureMqttPublisher_ValidConfiguration_RegistersTimeProvider()
-    {
-        // Arrange
-        var serviceCollection = new ServiceCollection();
-        var serverConfig = MqttServerConfigurationFaker.Generate();
-        var publisherConfig = MqttConnectorPublisherConfigurationFaker.Generate();
-
-        // Act
-        serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig);
-
-        // Assert
-        var descriptor = serviceCollection.FirstOrDefault(d => d.ServiceType == typeof(TimeProvider));
-        Assert.NotNull(descriptor);
-        Assert.Equal(ServiceLifetime.Singleton, descriptor.Lifetime);
-    }
 
     [Fact]
     public void ConfigureMqttPublisher_ValidConfiguration_RegistersIMqttPublisher()
@@ -108,13 +92,11 @@ public sealed class WebApplicationExtensionsTests
         serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig);
 
         // Assert
-        var timeProviderCount = serviceCollection.Count(d => d.ServiceType == typeof(TimeProvider));
         var mqttPublisherCount = serviceCollection.Count(d => d.ServiceType == typeof(IMqttPublisher));
         var mqttClientCount = serviceCollection.Count(d => d.ServiceType == typeof(IMqttClient));
 
         // Note: Current implementation registers duplicates when called multiple times
         // This test documents the current behavior
-        Assert.Equal(2, timeProviderCount);
         Assert.Equal(2, mqttPublisherCount);
         Assert.Equal(2, mqttClientCount);
     }
@@ -382,26 +364,6 @@ public sealed class WebApplicationExtensionsTests
         Assert.NotNull(descriptor);
     }
 
-    [Fact]
-    public void ConfigureMqttPublisher_CanResolveTimeProvider()
-    {
-        // Arrange
-        var serviceCollection = new ServiceCollection();
-        var serverConfig = MqttServerConfigurationFaker.Generate();
-        var publisherConfig = MqttConnectorPublisherConfigurationFaker.Generate();
-
-        // Act
-        serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig);
-        var serviceProvider = serviceCollection.BuildServiceProvider();
-
-        // Assert
-        var timeProvider = serviceProvider.GetService<TimeProvider>();
-        Assert.NotNull(timeProvider);
-        Assert.Same(TimeProvider.System, timeProvider);
-
-        serviceProvider.Dispose();
-    }
-
 
     [Fact]
     public void ConfigureMqttPublisher_WithLogger_RegistersServices()
@@ -418,26 +380,6 @@ public sealed class WebApplicationExtensionsTests
         // Assert
         var descriptor = serviceCollection.FirstOrDefault(d => d.ServiceType == typeof(IMqttPublisher));
         Assert.NotNull(descriptor);
-    }
-
-    [Fact]
-    public void ConfigureMqttPublisher_SingletonLifestyle_SameInstanceForTimeProvider()
-    {
-        // Arrange
-        var serviceCollection = new ServiceCollection();
-        var serverConfig = MqttServerConfigurationFaker.Generate();
-        var publisherConfig = MqttConnectorPublisherConfigurationFaker.Generate();
-
-        // Act
-        serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig);
-        var serviceProvider = serviceCollection.BuildServiceProvider();
-
-        // Assert
-        var timeProvider1 = serviceProvider.GetService<TimeProvider>();
-        var timeProvider2 = serviceProvider.GetService<TimeProvider>();
-        Assert.Same(timeProvider1, timeProvider2);
-
-        serviceProvider.Dispose();
     }
 
 

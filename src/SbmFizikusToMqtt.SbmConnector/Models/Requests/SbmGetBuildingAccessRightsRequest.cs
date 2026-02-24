@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace SbmFizikusToMqtt.SbmConnector.Models.Requests;
 
-internal record SbmGetBuildingAccessRightsRequest
+internal sealed record SbmGetBuildingAccessRightsRequest
 {
     [SetsRequiredMembers]
     public SbmGetBuildingAccessRightsRequest(string jwtToken)

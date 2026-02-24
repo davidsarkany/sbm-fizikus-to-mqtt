@@ -7,17 +7,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <InternalsVisibleTo Include="SbmFizikusToMqtt.MqttConnector.Tests"/>
+        <InternalsVisibleTo Include="$(AssemblyName).Tests"/>
+        <InternalsVisibleTo Include="DynamicProxyGenAssembly2"/>
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\SbmFizikusToMqtt.Domain\SbmFizikusToMqtt.Domain.csproj"/>
         <ProjectReference Include="..\SbmFizikusToMqtt.HomeAssistantAutoDiscovery\SbmFizikusToMqtt.HomeAssistantAutoDiscovery.csproj"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <InternalsVisibleTo Include="$(AssemblyName).Tests"/>
-        <InternalsVisibleTo Include="DynamicProxyGenAssembly2"/>
     </ItemGroup>
 
     <ItemGroup>

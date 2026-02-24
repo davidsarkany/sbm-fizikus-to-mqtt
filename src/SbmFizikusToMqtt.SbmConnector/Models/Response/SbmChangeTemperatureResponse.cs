@@ -2,7 +2,7 @@
 
 namespace SbmFizikusToMqtt.SbmConnector.Models.Response;
 
-internal record SbmChangeTemperatureResponse
+internal sealed record SbmChangeTemperatureResponse
 {
     [JsonPropertyName("message")] public required string Message { get; init; }
 

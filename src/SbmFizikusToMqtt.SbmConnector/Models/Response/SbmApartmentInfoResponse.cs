@@ -75,7 +75,7 @@ internal sealed record SbmApartmentInfoResponse
     [JsonPropertyName("dehumidificationEquipment")]
     public required int DehumidificationEquipment { get; init; }
 
-    [JsonPropertyName("thermostats")] public required List<Thermostat> Thermostats { get; init; }
+    [JsonPropertyName("thermostats")] public required IEnumerable<Thermostat> Thermostats { get; init; }
 
     [JsonPropertyName("communicationActiveRelayModule")]
     public required bool CommunicationActiveRelayModule { get; init; }
@@ -89,7 +89,7 @@ internal sealed record SbmApartmentInfoResponse
 
         [JsonPropertyName("thermostatNo")] public required int ThermostatNo { get; init; }
 
-        [JsonPropertyName("name")] public required string Name { get; init; }
+        [JsonPropertyName("name")] public required string? Name { get; init; }
 
         [JsonPropertyName("configUpdatedByWebapp")]
         public required bool ConfigUpdatedByWebapp { get; init; }

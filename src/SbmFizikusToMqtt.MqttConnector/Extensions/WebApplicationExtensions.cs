@@ -14,7 +14,6 @@ public static class WebApplicationExtensions
         MqttServerConfiguration mqttServerConfiguration,
         MqttConnectorPublisherConfiguration mqttConnectorPublisherConfiguration)
     {
-        serviceCollection.AddSingleton(TimeProvider.System);
         serviceCollection.AddSingleton<MqttClientOptions>(_ =>
             new MqttClientOptionsBuilder()
                 .WithTcpServer(mqttServerConfiguration.Host, mqttServerConfiguration.Port)
