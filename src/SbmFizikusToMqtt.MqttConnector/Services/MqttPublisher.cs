@@ -16,15 +16,6 @@ internal sealed class MqttPublisher(
     IOptionsMonitor<MqttConnectorPublisherConfiguration> mqttConnectorPublisherConfiguration)
     : IMqttPublisher
 {
-    private readonly MqttApplicationMessage _offlineStateMessage = new MqttApplicationMessageBuilder()
-        .WithTopic($"{mqttConnectorPublisherConfiguration.CurrentValue.SbmTopic}/bridge/state")
-        .WithPayload("{\"state\": \"offline\"}")
-        .Build();
-
-    private readonly MqttApplicationMessage _onlineStateMessage = new MqttApplicationMessageBuilder()
-        .WithTopic($"{mqttConnectorPublisherConfiguration.CurrentValue.SbmTopic}/bridge/state")
-        .WithPayload("{\"state\": \"online\"}")
-        .Build();
 
     private bool _discoveryPublished;
 
@@ -96,6 +87,12 @@ internal sealed class MqttPublisher(
 
     private async Task PublishState(bool online, CancellationToken cancellationToken = default)
     {
-        await mqttClient.PublishAsync(online ? _onlineStateMessage : _offlineStateMessage, cancellationToken);
+        var statePayload = online ? "{\"state\": \"online\"}" : "{\"state\": \"offline\"}";
+        var message = new MqttApplicationMessageBuilder()
+            .WithTopic($"{mqttConnectorPublisherConfiguration.CurrentValue.SbmTopic}/bridge/state")
+            .WithPayload(statePayload)
+            .Build();
+
+        await mqttClient.PublishAsync(message, cancellationToken);
     }
 }
