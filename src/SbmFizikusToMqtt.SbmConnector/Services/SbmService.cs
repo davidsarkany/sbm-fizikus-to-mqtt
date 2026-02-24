@@ -1,4 +1,4 @@
-﻿using System.Text;
+﻿﻿using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using SbmFizikusToMqtt.SbmConnector.Converters;
@@ -15,7 +15,7 @@ internal sealed class SbmService(IHttpClientFactory httpClientFactory) : ISbmSer
     private const string RequestUri = "/frontend";
     private readonly HttpClient _httpClient = httpClientFactory.CreateClient("SbmClient");
 
-    private readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    private static readonly JsonSerializerOptions JsonSerializerOptions = new()
     {
         Converters =
         {
@@ -28,73 +28,34 @@ internal sealed class SbmService(IHttpClientFactory httpClientFactory) : ISbmSer
     public async Task<SbmTokenResponse> GetToken(string username, string password,
         CancellationToken cancellationToken = default)
     {
-        var loginData = JsonSerializer.Serialize(new SbmTokenRequest(username, HashService.Sha256Hash(password)));
-        var content = new StringContent(loginData, Encoding.UTF8, DefaultMediaType);
-        var response = await _httpClient.PutAsync(RequestUri, content, cancellationToken);
-        response.EnsureSuccessStatusCode();
-
-        var responseJson = await response.Content.ReadAsStringAsync(cancellationToken);
-        try
-        {
-            var token = JsonSerializer.Deserialize<SbmTokenResponse>(responseJson, _jsonSerializerOptions);
-            if (token == null)
-                throw new SbmInvalidResponseException("SbmTokenService returned null response");
-            return token;
-        }
-        catch (JsonException ex)
-        {
-            throw new SbmInvalidResponseException($"login failed: {responseJson}", ex);
-        }
+        var request = new SbmTokenRequest(username, HashService.Sha256Hash(password));
+        return await SendRequestAsync<SbmTokenRequest, SbmTokenResponse>(request, "login failed", cancellationToken);
     }
 
     public async Task<SbmGetBuildingAccessRightsResponse[]> GetBuildingAccessRights(string token,
         CancellationToken cancellationToken = default)
     {
-        var requestData = new SbmGetBuildingAccessRightsRequest(token);
-        var content = new StringContent(JsonSerializer.Serialize(requestData), Encoding.UTF8, DefaultMediaType);
-        var response = await _httpClient.PutAsync(RequestUri, content, cancellationToken);
-        response.EnsureSuccessStatusCode();
+        var request = new SbmGetBuildingAccessRightsRequest(token);
+        var values = await SendRequestAsync<SbmGetBuildingAccessRightsRequest, SbmGetBuildingAccessRightsResponse[]>(
+            request, "Failed to parse building access rights response", cancellationToken);
 
-        var jsonArray = await response.Content.ReadAsStringAsync(cancellationToken);
-        try
-        {
-            var values =
-                JsonSerializer.Deserialize<SbmGetBuildingAccessRightsResponse[]>(jsonArray, _jsonSerializerOptions);
-            if (values == null || values.Length == 0)
-                throw new SbmInvalidResponseException(
-                    $"SBM returned empty building access rights response: {jsonArray}");
+        if (values.Length == 0)
+            throw new SbmInvalidResponseException("SBM returned empty building access rights response");
 
-            return values;
-        }
-        catch (JsonException ex)
-        {
-            throw new SbmInvalidResponseException(
-                $"Failed to parse building access rights response: {ex.Message}", ex);
-        }
+        return values;
     }
 
     public async Task<SbmApartmentListResponse[]> GetApartmentList(string buildingId, string token,
         CancellationToken cancellationToken = default)
     {
-        var requestData = new SbmApartmentListRequest(buildingId, token);
-        var content = new StringContent(JsonSerializer.Serialize(requestData), Encoding.UTF8, DefaultMediaType);
-        var response = await _httpClient.PutAsync(RequestUri, content, cancellationToken);
-        response.EnsureSuccessStatusCode();
+        var request = new SbmApartmentListRequest(buildingId, token);
+        var apartments = await SendRequestAsync<SbmApartmentListRequest, SbmApartmentListResponse[]>(
+            request, "Failed to parse apartment list", cancellationToken);
 
-        var jsonArray = await response.Content.ReadAsStringAsync(cancellationToken);
+        if (apartments.Length == 0)
+            throw new SbmInvalidResponseException("SBM returned empty apartment list");
 
-        try
-        {
-            var apartments = JsonSerializer.Deserialize<SbmApartmentListResponse[]>(jsonArray, _jsonSerializerOptions);
-            if (apartments == null || apartments.Length == 0)
-                throw new SbmInvalidResponseException($"SBM returned empty apartment list: {jsonArray}");
-
-            return apartments;
-        }
-        catch (JsonException ex)
-        {
-            throw new SbmInvalidResponseException($"Failed to parse apartment list: {ex.Message}", ex);
-        }
+        return apartments;
     }
 
     public async Task<SbmChangeTemperatureResponse> ChangeTemperature(int thermostatId, double temperature,
@@ -102,30 +63,27 @@ internal sealed class SbmService(IHttpClientFactory httpClientFactory) : ISbmSer
         CancellationToken cancellationToken = default)
     {
         var request = new SbmChangeTemperatureRequest(thermostatId, temperature, token);
-        var content = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, DefaultMediaType);
-
-        var response = await _httpClient.PutAsync(RequestUri, content, cancellationToken);
-        response.EnsureSuccessStatusCode();
-        var responseJson = await response.Content.ReadAsStringAsync(cancellationToken);
-        try
-        {
-            var des = JsonSerializer.Deserialize<SbmChangeTemperatureResponse>(responseJson, _jsonSerializerOptions);
-            if (des == null)
-                throw new SbmInvalidResponseException(
-                    $"SbmChangeTemperatureResponse deserialize failed input: {responseJson}");
-            return des;
-        }
-        catch (JsonException ex)
-        {
-            throw new SbmInvalidResponseException($"Invalid JSON: {responseJson}", ex);
-        }
+        return await SendRequestAsync<SbmChangeTemperatureRequest, SbmChangeTemperatureResponse>(
+            request, "SbmChangeTemperatureResponse deserialize failed", cancellationToken);
     }
 
     public async Task<SbmApartmentInfoResponse> GetApartmentInfo(int apartmentId, string token,
         CancellationToken cancellationToken = default)
     {
-        var loginData = JsonSerializer.Serialize(new SbmApartmentInfoRequest(apartmentId, token));
-        var content = new StringContent(loginData, Encoding.UTF8, DefaultMediaType);
+        var request = new SbmApartmentInfoRequest(apartmentId, token);
+        return await SendRequestAsync<SbmApartmentInfoRequest, SbmApartmentInfoResponse>(
+            request, "get apartment info failed", cancellationToken);
+    }
+
+    private async Task<TResponse> SendRequestAsync<TRequest, TResponse>(
+        TRequest requestData,
+        string errorContext,
+        CancellationToken cancellationToken) where TResponse : class
+    {
+        var content = new StringContent(
+            JsonSerializer.Serialize(requestData),
+            Encoding.UTF8,
+            DefaultMediaType);
 
         var response = await _httpClient.PutAsync(RequestUri, content, cancellationToken);
         response.EnsureSuccessStatusCode();
@@ -133,16 +91,14 @@ internal sealed class SbmService(IHttpClientFactory httpClientFactory) : ISbmSer
         var responseJson = await response.Content.ReadAsStringAsync(cancellationToken);
         try
         {
-            var apartmentInfo =
-                JsonSerializer.Deserialize<SbmApartmentInfoResponse>(responseJson, _jsonSerializerOptions);
-            if (apartmentInfo == null)
-                throw new SbmInvalidResponseException($"get apartment info failed: {responseJson}");
-
-            return apartmentInfo;
+            var result = JsonSerializer.Deserialize<TResponse>(responseJson, JsonSerializerOptions);
+            if (result == null)
+                throw new SbmInvalidResponseException($"{errorContext}: {responseJson}");
+            return result;
         }
         catch (JsonException ex)
         {
-            throw new SbmInvalidResponseException($"Invalid JSON: {responseJson}", ex);
+            throw new SbmInvalidResponseException($"{errorContext}: {responseJson}", ex);
         }
     }
 }

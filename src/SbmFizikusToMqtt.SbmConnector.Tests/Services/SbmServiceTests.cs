@@ -88,7 +88,7 @@ public class SbmServiceTests
         // Act & Assert
         var exception =
             await Assert.ThrowsAsync<SbmInvalidResponseException>(() => _sbmService.GetToken(username, password));
-        Assert.Contains("null response", exception.Message);
+        Assert.Contains("login failed", exception.Message);
     }
 
     [Fact]
@@ -296,7 +296,7 @@ public class SbmServiceTests
         // Act & Assert
         var exception = await Assert.ThrowsAsync<SbmInvalidResponseException>(() =>
             _sbmService.ChangeTemperature(thermostatId, temperature, token));
-        Assert.Contains("Invalid JSON", exception.Message);
+        Assert.Contains("deserialize failed", exception.Message);
     }
 
     [Fact]
@@ -401,7 +401,7 @@ public class SbmServiceTests
         var exception =
             await Assert.ThrowsAsync<SbmInvalidResponseException>(() =>
                 _sbmService.GetApartmentInfo(apartmentId, token));
-        Assert.Contains("Invalid JSON", exception.Message);
+        Assert.Contains("get apartment info failed", exception.Message);
     }
 
     [Fact]
