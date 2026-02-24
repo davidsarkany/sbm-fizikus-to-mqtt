@@ -13,5 +13,5 @@ internal sealed record SbmTokenResponse
     [JsonPropertyName("refresh_token_expiration")]
     public required DateTimeOffset RefreshTokenExpiration { get; init; }
 
-    [JsonPropertyName("rights")] public required List<string> Rights { get; init; }
+    [JsonPropertyName("rights")] public required IEnumerable<string> Rights { get; init; }
 }

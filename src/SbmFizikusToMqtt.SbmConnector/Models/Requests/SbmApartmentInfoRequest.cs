@@ -22,7 +22,7 @@ internal sealed record SbmApartmentInfoRequest
 
     internal sealed record PayloadData
     {
-        [JsonPropertyName("apartment_id")] public long ApartmentId { get; init; }
+        [JsonPropertyName("apartment_id")] public required int ApartmentId { get; init; }
 
         [JsonPropertyName("jwt_token")] public required string JwtToken { get; init; }
     }

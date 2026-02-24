@@ -17,7 +17,7 @@ public class MapperExtensionsTests
         // Assert
         Assert.Equal("heating", result.SystemMode);
         Assert.NotNull(result.Thermostats);
-        Assert.Equal(response.Thermostats.Count, result.Thermostats.Count());
+        Assert.Equal(response.Thermostats.Count(), result.Thermostats.Count());
         Assert.Equal(response.LastStateUpdate, result.LastUpdate);
         Assert.Equal(response.CommunicationActiveRelayModule, result.RelayConnectionActive);
         Assert.Equal(response.CommunicationActiveThermostats, result.ThermostatsConnectionActive);

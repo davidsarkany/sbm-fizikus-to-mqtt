@@ -16,11 +16,11 @@ internal sealed record SbmTokenRequest
         };
     }
 
-    [JsonPropertyName("operation")] public required string Operation { get; init; } = "get_jw_token";
+    [JsonPropertyName("operation")] public required string Operation { get; init; }
 
     [JsonPropertyName("payload")] public required PayloadData Payload { get; init; }
 
-    internal sealed class PayloadData
+    internal sealed record PayloadData
     {
         [JsonPropertyName("username_or_email")]
         public required string UsernameOrEmail { get; init; }
