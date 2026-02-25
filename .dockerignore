@@ -26,3 +26,5 @@ README.md
 src/SbmFizikusToMqtt/AGENTS.md
 src/.github/copilot-instructions.md
 src/coverlet.runsettings
+src/.editorconfig
+src/.github/*.md
