@@ -28,35 +28,6 @@ Thank you for your interest in contributing! This document explains how to repor
 dotnet build
 ```
 
-# Contributing to SbmFizikusToMqtt
-
-Thank you for your interest in contributing! This document explains how to report issues, propose changes, and submit code to the project.
-
-## Table of contents
-- Reporting bugs
-- Feature requests
-- Development setup
-- Branching & pull requests
-- Coding style
-- Tests
-- CI / Validation
-
-## Reporting bugs
-- Search existing issues before opening a new one.
-- Provide a clear title, steps to reproduce, expected vs actual behavior, and relevant logs or configuration excerpts.
-
-## Feature requests
-- Describe the problem, the proposed solution, and the expected benefit.
-- If possible, include examples or a short design sketch.
-
-## Development setup
-1. Fork the repository and create a feature branch from `main`.
-2. Build the solution with the .NET SDK (recommended version: use what's in global.json or the CI). Example:
-
-```
-dotnet build
-```
-
 3. Run tests locally:
 
 ```
