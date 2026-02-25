@@ -281,4 +281,3 @@ public sealed class InitialSbmPollingJobTests
         return (Task)method.Invoke(job, [cancellationToken])!;
     }
 }
-

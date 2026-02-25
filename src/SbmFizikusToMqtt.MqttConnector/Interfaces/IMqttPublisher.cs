@@ -4,5 +4,5 @@ namespace SbmFizikusToMqtt.MqttConnector.Interfaces;
 
 public interface IMqttPublisher
 {
-    public Task Publish(Apartment apartment, CancellationToken cancellationToken = default);
+    Task Publish(Apartment apartment, CancellationToken cancellationToken = default);
 }

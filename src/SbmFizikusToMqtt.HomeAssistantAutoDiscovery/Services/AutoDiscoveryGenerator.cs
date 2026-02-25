@@ -50,11 +50,7 @@ internal sealed class AutoDiscoveryGenerator : IAutoDiscoveryGenerator
 
         // Generate thermostat discovery messages
         foreach (var thermostat in apartment.Thermostats)
-        {
             foreach (var strategy in _thermostatDiscovery)
-            {
                 yield return strategy.CreatePayload(thermostat);
-            }
-        }
     }
 }

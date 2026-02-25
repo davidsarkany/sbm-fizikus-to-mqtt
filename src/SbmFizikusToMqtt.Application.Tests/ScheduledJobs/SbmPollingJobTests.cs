@@ -105,8 +105,7 @@ public sealed class SbmPollingJobTests
         var sut = CreateJob();
 
         // Act & Assert
-        await Assert.ThrowsAsync<OperationCanceledException>(
-            () => sut.PollSbmData(default!, CancellationToken.None));
+        await Assert.ThrowsAsync<OperationCanceledException>(() => sut.PollSbmData(default!, CancellationToken.None));
 
         _loggerMock.Verify(
             x => x.Log(
@@ -155,8 +154,7 @@ public sealed class SbmPollingJobTests
         var sut = CreateJob();
 
         // Act & Assert
-        await Assert.ThrowsAsync<HttpRequestException>(
-            () => sut.PollSbmData(default!, CancellationToken.None));
+        await Assert.ThrowsAsync<HttpRequestException>(() => sut.PollSbmData(default!, CancellationToken.None));
 
         _loggerMock.Verify(
             x => x.Log(
@@ -205,8 +203,7 @@ public sealed class SbmPollingJobTests
         var sut = CreateJob();
 
         // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(
-            () => sut.PollSbmData(default!, CancellationToken.None));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => sut.PollSbmData(default!, CancellationToken.None));
 
         _loggerMock.Verify(
             x => x.Log(
@@ -259,8 +256,7 @@ public sealed class SbmPollingJobTests
         var sut = CreateJob();
 
         // Act & Assert
-        await Assert.ThrowsAsync<Exception>(
-            () => sut.PollSbmData(default!, CancellationToken.None));
+        await Assert.ThrowsAsync<Exception>(() => sut.PollSbmData(default!, CancellationToken.None));
 
         _loggerMock.Verify(
             x => x.Log(
@@ -320,8 +316,7 @@ public sealed class SbmPollingJobTests
         var sut = CreateJob();
 
         // Act & Assert
-        await Assert.ThrowsAsync<TaskCanceledException>(
-            () => sut.PollSbmData(default!, CancellationToken.None));
+        await Assert.ThrowsAsync<TaskCanceledException>(() => sut.PollSbmData(default!, CancellationToken.None));
 
         _loggerMock.Verify(
             x => x.Log(
@@ -341,6 +336,3 @@ public sealed class SbmPollingJobTests
             _loggerMock.Object);
     }
 }
-
-
-

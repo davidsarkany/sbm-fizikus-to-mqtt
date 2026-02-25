@@ -7,9 +7,9 @@ namespace SbmFizikusToMqtt.MqttConnector.Tests.Services;
 
 public sealed class MqttConnectionServiceTests
 {
+    private readonly Mock<ILogger<MqttConnectionService>> _loggerMock;
     private readonly Mock<IMqttClient> _mqttClientMock;
     private readonly MqttClientOptions _mqttClientOptions;
-    private readonly Mock<ILogger<MqttConnectionService>> _loggerMock;
 
     public MqttConnectionServiceTests()
     {
@@ -20,8 +20,10 @@ public sealed class MqttConnectionServiceTests
         _loggerMock = new Mock<ILogger<MqttConnectionService>>();
     }
 
-    private MqttConnectionService CreateSut() =>
-        new(_mqttClientMock.Object, _mqttClientOptions, _loggerMock.Object);
+    private MqttConnectionService CreateSut()
+    {
+        return new MqttConnectionService(_mqttClientMock.Object, _mqttClientOptions, _loggerMock.Object);
+    }
 
     [Fact]
     public async Task StartAsync_ValidOptions_ConnectsToBroker()
@@ -75,8 +77,8 @@ public sealed class MqttConnectionServiceTests
             .ThrowsAsync(expectedException);
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => sut.StartAsync(CancellationToken.None));
+        var exception =
+            await Assert.ThrowsAsync<InvalidOperationException>(() => sut.StartAsync(CancellationToken.None));
 
         Assert.Same(expectedException, exception);
     }
@@ -156,14 +158,9 @@ public sealed class MqttConnectionServiceTests
             .ThrowsAsync(expectedException);
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => sut.StopAsync(CancellationToken.None));
+        var exception =
+            await Assert.ThrowsAsync<InvalidOperationException>(() => sut.StopAsync(CancellationToken.None));
 
         Assert.Same(expectedException, exception);
     }
 }
-
-
-
-
-

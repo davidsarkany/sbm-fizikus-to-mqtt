@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using Bogus;
 using Microsoft.Extensions.Options;
 using Moq;

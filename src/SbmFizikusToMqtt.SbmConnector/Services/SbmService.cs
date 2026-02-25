@@ -1,4 +1,4 @@
-﻿﻿using System.Text;
+﻿using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using SbmFizikusToMqtt.SbmConnector.Converters;
@@ -13,7 +13,6 @@ internal sealed class SbmService(IHttpClientFactory httpClientFactory) : ISbmSer
 {
     private const string DefaultMediaType = "application/json";
     private const string RequestUri = "/frontend";
-    private readonly HttpClient _httpClient = httpClientFactory.CreateClient("SbmClient");
 
     private static readonly JsonSerializerOptions JsonSerializerOptions = new()
     {
@@ -24,6 +23,8 @@ internal sealed class SbmService(IHttpClientFactory httpClientFactory) : ISbmSer
         },
         NumberHandling = JsonNumberHandling.AllowReadingFromString
     };
+
+    private readonly HttpClient _httpClient = httpClientFactory.CreateClient("SbmClient");
 
     public async Task<SbmTokenResponse> GetToken(string username, string password,
         CancellationToken cancellationToken = default)

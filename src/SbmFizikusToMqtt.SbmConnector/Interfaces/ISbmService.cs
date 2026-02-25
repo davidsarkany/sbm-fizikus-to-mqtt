@@ -4,18 +4,18 @@ namespace SbmFizikusToMqtt.SbmConnector.Interfaces;
 
 internal interface ISbmService
 {
-    public Task<SbmTokenResponse> GetToken(string username, string password,
+    Task<SbmTokenResponse> GetToken(string username, string password,
         CancellationToken cancellationToken = default);
 
-    public Task<SbmGetBuildingAccessRightsResponse[]> GetBuildingAccessRights(string token,
+    Task<SbmGetBuildingAccessRightsResponse[]> GetBuildingAccessRights(string token,
         CancellationToken cancellationToken = default);
 
-    public Task<SbmApartmentListResponse[]> GetApartmentList(string buildingId, string token,
+    Task<SbmApartmentListResponse[]> GetApartmentList(string buildingId, string token,
         CancellationToken cancellationToken = default);
 
-    public Task<SbmApartmentInfoResponse> GetApartmentInfo(int apartmentId, string token,
+    Task<SbmApartmentInfoResponse> GetApartmentInfo(int apartmentId, string token,
         CancellationToken cancellationToken = default);
 
-    public Task<SbmChangeTemperatureResponse> ChangeTemperature(int thermostatId, double temperature, string token,
+    Task<SbmChangeTemperatureResponse> ChangeTemperature(int thermostatId, double temperature, string token,
         CancellationToken cancellationToken = default);
 }

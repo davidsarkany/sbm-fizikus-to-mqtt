@@ -1,4 +1,4 @@
-using SbmFizikusToMqtt.SbmConnector.Services;
+﻿using SbmFizikusToMqtt.SbmConnector.Services;
 
 namespace SbmFizikusToMqtt.SbmConnector.Tests.Services;
 

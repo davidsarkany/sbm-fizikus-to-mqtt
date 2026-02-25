@@ -1,4 +1,4 @@
-using SbmFizikusToMqtt.SbmConnector.Extensions;
+﻿using SbmFizikusToMqtt.SbmConnector.Extensions;
 using SbmFizikusToMqtt.SbmConnector.Models.Response;
 
 namespace SbmFizikusToMqtt.SbmConnector.Tests.Extensions;

@@ -100,4 +100,3 @@ public sealed class IServiceCollectionExtensionsTests
         services.AddSingleton(new Mock<ILogger<InitialSbmPollingJob>>().Object);
     }
 }
-

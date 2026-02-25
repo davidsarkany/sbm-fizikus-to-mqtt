@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using Moq;
 using SbmFizikusToMqtt.SbmConnector.Configurations;
 using SbmFizikusToMqtt.SbmConnector.Interfaces;

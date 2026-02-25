@@ -1,4 +1,4 @@
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using SbmFizikusToMqtt.Domain;
 using SbmFizikusToMqtt.HomeAssistantAutoDiscovery.Configurations;

@@ -5,5 +5,5 @@ namespace SbmFizikusToMqtt.HomeAssistantAutoDiscovery.Interfaces;
 
 internal interface IApartmentDiscoveryStrategy
 {
-    public MqttMessage CreatePayload(Apartment apartment);
+    MqttMessage CreatePayload(Apartment apartment);
 }

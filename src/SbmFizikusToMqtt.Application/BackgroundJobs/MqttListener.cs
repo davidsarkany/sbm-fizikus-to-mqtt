@@ -42,7 +42,7 @@ internal sealed class MqttListener(
             .Build();
 
         await mqttClient.SubscribeAsync(subscribeOptions, stoppingToken);
-        
+
         if (logger.IsEnabled(LogLevel.Information))
             logger.LogInformation("Subscribed to {Topic}", subscribeTopic);
 
@@ -76,8 +76,9 @@ internal sealed class MqttListener(
             }
 
             if (logger.IsEnabled(LogLevel.Information))
-                logger.LogInformation("Changing temperature for thermostat {ThermostatId} to {Temperature}", request.Id, request.Value);
-            
+                logger.LogInformation("Changing temperature for thermostat {ThermostatId} to {Temperature}", request.Id,
+                    request.Value);
+
             await apartmentService.ChangeTemperature(request.Id, request.Value, _stoppingToken);
             var apartment = await apartmentService.GetApartmentInfo(_stoppingToken);
             await publisher.Publish(apartment, _stoppingToken);

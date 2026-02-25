@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Reflection;
 using System.Text.Json;
 using Bogus;
@@ -35,9 +35,11 @@ public sealed class MqttListenerTests
     public MqttListenerTests()
     {
         _mqttClientMock = new Mock<IMqttClient>();
-        _mqttClientMock.SetupAdd(x => x.ApplicationMessageReceivedAsync += It.IsAny<Func<MqttApplicationMessageReceivedEventArgs, Task>>());
-        _mqttClientMock.SetupRemove(x => x.ApplicationMessageReceivedAsync -= It.IsAny<Func<MqttApplicationMessageReceivedEventArgs, Task>>());
-        
+        _mqttClientMock.SetupAdd(x =>
+            x.ApplicationMessageReceivedAsync += It.IsAny<Func<MqttApplicationMessageReceivedEventArgs, Task>>());
+        _mqttClientMock.SetupRemove(x =>
+            x.ApplicationMessageReceivedAsync -= It.IsAny<Func<MqttApplicationMessageReceivedEventArgs, Task>>());
+
         _apartmentServiceMock = new Mock<IApartmentService>();
         _publisherMock = new Mock<IMqttPublisher>();
         _optionsMonitorMock = new Mock<IOptionsMonitor<MqttConnectorPublisherConfiguration>>();
@@ -50,7 +52,7 @@ public sealed class MqttListenerTests
 
         _optionsMonitorMock.Setup(x => x.CurrentValue).Returns(_configuration);
         _mqttClientMock.Setup(x => x.IsConnected).Returns(true);
-        
+
         // Enable all log levels so that logger.IsEnabled() returns true and logs are actually made
         _loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
     }
@@ -528,7 +530,8 @@ public sealed class MqttListenerTests
         return (Task)method.Invoke(listener, new object[] { cancellationToken })!;
     }
 
-    private static async Task InvokeHandleMessageReceived(MqttListener listener, MqttApplicationMessageReceivedEventArgs args)
+    private static async Task InvokeHandleMessageReceived(MqttListener listener,
+        MqttApplicationMessageReceivedEventArgs args)
     {
         // Use reflection to invoke the private HandleMessageReceived method
         var method = typeof(MqttListener).GetMethod("HandleMessageReceived",

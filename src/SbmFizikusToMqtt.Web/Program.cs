@@ -1,4 +1,4 @@
-using SbmFizikusToMqtt.Application.Extensions;
+﻿using SbmFizikusToMqtt.Application.Extensions;
 using SbmFizikusToMqtt.Web.Extensions;
 using TickerQ.DependencyInjection;
 

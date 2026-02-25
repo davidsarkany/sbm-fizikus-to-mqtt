@@ -4,5 +4,5 @@ namespace SbmFizikusToMqtt.SbmConnector.Interfaces;
 
 internal interface ITokenService
 {
-    public Task<SbmTokenResponse> GetToken(CancellationToken cancellationToken = default);
+    Task<SbmTokenResponse> GetToken(CancellationToken cancellationToken = default);
 }

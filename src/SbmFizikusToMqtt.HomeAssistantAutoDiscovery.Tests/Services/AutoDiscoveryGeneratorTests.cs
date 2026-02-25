@@ -1,4 +1,4 @@
-using Bogus;
+﻿using Bogus;
 using Microsoft.Extensions.Options;
 using Moq;
 using SbmFizikusToMqtt.Domain;

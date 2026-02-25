@@ -16,7 +16,6 @@ internal sealed class MqttPublisher(
     IOptionsMonitor<MqttConnectorPublisherConfiguration> mqttConnectorPublisherConfiguration)
     : IMqttPublisher
 {
-
     private bool _discoveryPublished;
 
 

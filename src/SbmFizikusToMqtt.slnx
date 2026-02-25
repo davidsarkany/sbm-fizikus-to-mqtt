@@ -3,7 +3,7 @@
     <Project Path="SbmFizikusToMqtt.Application/SbmFizikusToMqtt.Application.csproj"/>
     <Project Path="SbmFizikusToMqtt.Domain/SbmFizikusToMqtt.Domain.csproj"/>
     <Project
-            Path="SbmFizikusToMqtt.HomeAssistantAutoDiscovery.Tests/SbmFizikusToMqtt.HomeAssistantAutoDiscovery.Tests.csproj"/>
+        Path="SbmFizikusToMqtt.HomeAssistantAutoDiscovery.Tests/SbmFizikusToMqtt.HomeAssistantAutoDiscovery.Tests.csproj"/>
     <Project Path="SbmFizikusToMqtt.HomeAssistantAutoDiscovery/SbmFizikusToMqtt.HomeAssistantAutoDiscovery.csproj"/>
     <Project Path="SbmFizikusToMqtt.MqttConnector.Domain/SbmFizikusToMqtt.MqttConnector.Domain.csproj"/>
     <Project Path="SbmFizikusToMqtt.MqttConnector.Tests/SbmFizikusToMqtt.MqttConnector.Tests.csproj"/>

@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using SbmFizikusToMqtt.SbmConnector.Converters;
 using SbmFizikusToMqtt.SbmConnector.Models.Response;
 

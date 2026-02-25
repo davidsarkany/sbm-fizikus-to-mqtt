@@ -1,4 +1,4 @@
-using Moq;
+﻿using Moq;
 using SbmFizikusToMqtt.SbmConnector.Exceptions;
 using SbmFizikusToMqtt.SbmConnector.Interfaces;
 using SbmFizikusToMqtt.SbmConnector.Models.Response;
