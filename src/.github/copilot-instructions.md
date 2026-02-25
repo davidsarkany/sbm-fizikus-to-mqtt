@@ -1,4 +1,4 @@
-﻿﻿# GitHub Copilot Instructions for SBM Fizikus to MQTT
+﻿# GitHub Copilot Instructions for SBM Fizikus to MQTT
 
 ## Project Overview
 
@@ -313,9 +313,23 @@ services.Configure<SbmConfiguration>(configuration.GetSection("SbmConfiguration"
 
 ---
 
+## Development Environment
+
+- **OS:** Windows 11
+- **Shell:** PowerShell (use PowerShell syntax for all terminal commands)
+- **IDE:** JetBrains Rider
+
+### Terminal Command Guidelines
+
+- Use PowerShell syntax (e.g., `;` to chain commands, not `&&`)
+- Use backslash `\` for Windows file paths
+- Use `dotnet` CLI for build, test, and run operations
+
+---
+
 ## Build Commands
 
-```bash
+```powershell
 # Build solution
 dotnet build
 
@@ -324,6 +338,15 @@ dotnet test
 
 # Run tests with coverage
 dotnet test --collect:"XPlat Code Coverage"
+
+# Run a specific test project
+dotnet test .\SbmFizikusToMqtt.SbmConnector.Tests\
+
+# Format code
+dotnet format
+
+# Clean and rebuild
+dotnet clean ; dotnet build
 ```
 
 ---
