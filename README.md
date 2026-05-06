@@ -65,7 +65,7 @@ services:
       # Publisher & Discovery Configuration
       - PublisherConfiguration__SbmTopic=sbm_fizikus # optional
       - PublisherConfiguration__HomeAssistantTopic=homeassistant # optional
-      - PublisherConfiguration__FlatSystemModeDiscoveryEnabled=false # optional
+      - PublisherConfiguration__ApartmentSystemModeDiscoveryEnabled=false # optional
       - PublisherConfiguration__ThermostatTemperatureDiscoveryEnabled=false # optional
       - PublisherConfiguration__ThermostatTargetTemperatureDiscoveryEnabled=false # optional
       - PublisherConfiguration__ThermostatHumidityDiscoveryEnabled=false # optional
@@ -86,7 +86,7 @@ services:
 | `MqttConnector__MqttServer__ClientId` | MQTT client id                                      | sbm-fizikus-mqtt  |          |
 | `PublisherConfiguration__SbmTopic` | Base MQTT topic for SBM data                        | sbm_fizikus       |          |
 | `PublisherConfiguration__HomeAssistantTopic` | Base MQTT topic for Home Assistant discovery        | homeassistant     |          |
-| `PublisherConfiguration__FlatSystemModeDiscoveryEnabled` | Enable/disable auto-discovery for specific entities | false             |          |
+| `PublisherConfiguration__ApartmentSystemModeDiscoveryEnabled` | Enable/disable auto-discovery for specific entities | false             |          |
 | `PublisherConfiguration__ThermostatTemperatureDiscoveryEnabled` | Enable/disable auto-discovery for specific entities | false             |          |
 | `PublisherConfiguration__ThermostatTargetTemperatureDiscoveryEnabled` | Enable/disable auto-discovery for specific entities | false             |          |
 | `PublisherConfiguration__ThermostatHumidityDiscoveryEnabled` | Enable/disable auto-discovery for specific entities | false             |          |
@@ -142,8 +142,14 @@ docker-compose up -d
 ### MQTT Topics
 
 **Published Topics:**
-- `{SbmTopic}/flat/` - Flat-level information (system mode, connection status)
-- `{SbmTopic}/thermostats/` - Thermostat data (temperature, humidity, mode)
+- `{SbmTopic}/bridge/state` - Bridge online/offline state
+- `{SbmTopic}/apartment_info` - Apartment-level information (system mode, last update)
+- `{SbmTopic}/devices/{id}` - Thermostat data (temperature, humidity, mode per device)
+
+**Home Assistant Auto-Discovery Topics:**
+- `{HomeAssistantTopic}/sensor/sbm_fizikus-apartment-info/system_mode/config` - Apartment system mode sensor
+- `{HomeAssistantTopic}/sensor/sbm_fizikus-{id}/{sensor_type}/config` - Thermostat sensors (temperature, humidity, target temperature, system mode)
+- `{HomeAssistantTopic}/climate/sbm_fizikus-{id}/config` - Thermostat climate entity
 
 **Subscribed Topics:**
 - `{SbmTopic}/devices/+/set` - Command topics for device control
