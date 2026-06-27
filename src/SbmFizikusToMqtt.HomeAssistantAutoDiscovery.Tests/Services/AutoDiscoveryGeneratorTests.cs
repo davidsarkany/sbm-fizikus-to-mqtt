@@ -1,8 +1,10 @@
-﻿using Bogus;
+﻿using System.Text.Json;
+using Bogus;
 using Microsoft.Extensions.Options;
 using Moq;
 using SbmFizikusToMqtt.Domain;
 using SbmFizikusToMqtt.HomeAssistantAutoDiscovery.Configurations;
+using SbmFizikusToMqtt.HomeAssistantAutoDiscovery.Models;
 using SbmFizikusToMqtt.HomeAssistantAutoDiscovery.Services;
 using SbmFizikusToMqtt.HomeAssistantAutoDiscovery.Strategies;
 
@@ -261,7 +263,14 @@ public class AutoDiscoveryGeneratorTests
 
         // Assert
         Assert.Equal(thermostatCount, result.Count);
-        Assert.All(result, msg => Assert.Contains("climate", msg.Topic));
+        Assert.All(result, msg =>
+        {
+            Assert.Contains("climate", msg.Topic);
+            var payload = JsonSerializer.Deserialize<ClimateAutoDiscovery>(msg.Payload);
+            Assert.NotNull(payload);
+            Assert.Equal(0.5, payload.TemperatureStep);
+            Assert.Equal(0.1, payload.Precision);
+        });
     }
 
     [Fact]

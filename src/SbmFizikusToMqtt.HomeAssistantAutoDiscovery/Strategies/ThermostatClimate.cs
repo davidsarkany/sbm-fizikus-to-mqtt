@@ -29,6 +29,8 @@ internal sealed class ThermostatClimate(string sbmTopic, string homeAssistantTop
             TemperatureStateTemplate = "{{ value_json.target_temperature }}",
             TemperatureStateTopic = $"{sbmTopic}/devices/{thermostat.Id}",
             TemperatureUnit = "C",
+            TemperatureStep = 0.5,
+            Precision = 0.1,
             UniqueId = $"sbm_fizikus-{thermostat.Id}_climate",
             Modes = ["heat", "cool"],
             ModeStateTemplate =

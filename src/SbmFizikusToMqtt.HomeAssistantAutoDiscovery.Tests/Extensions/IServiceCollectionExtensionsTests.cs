@@ -1,9 +1,11 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using SbmFizikusToMqtt.Domain;
 using SbmFizikusToMqtt.HomeAssistantAutoDiscovery.Configurations;
 using SbmFizikusToMqtt.HomeAssistantAutoDiscovery.Extensions;
 using SbmFizikusToMqtt.HomeAssistantAutoDiscovery.Interfaces;
+using SbmFizikusToMqtt.HomeAssistantAutoDiscovery.Models;
 using SbmFizikusToMqtt.HomeAssistantAutoDiscovery.Strategies;
 
 namespace SbmFizikusToMqtt.HomeAssistantAutoDiscovery.Tests.Extensions;
@@ -310,6 +312,10 @@ public class ServiceCollectionExtensionsTests
         var message = climate.CreatePayload(testThermostat);
         Assert.Contains(homeAssistantTopic, message.Topic, StringComparison.Ordinal);
         Assert.Contains(sbmTopic, message.Payload, StringComparison.Ordinal);
+        var payload = JsonSerializer.Deserialize<ClimateAutoDiscovery>(message.Payload);
+        Assert.NotNull(payload);
+        Assert.Equal(0.5, payload.TemperatureStep);
+        Assert.Equal(0.1, payload.Precision);
     }
 
     [Fact]
