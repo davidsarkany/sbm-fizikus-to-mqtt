@@ -21,6 +21,8 @@ With Home Assistant auto-discovery enabled, the following entities are available
 - Humidity levels measured by the thermostats
 - Current operating state (idle, heating, or cooling)
 - Central heating system mode for the apartment building
+- Outdoor temperature (opt-in via `OutdoorWeatherEnabled`)
+- Outdoor humidity (opt-in via `OutdoorWeatherEnabled`)
 
 
 ## Installation
@@ -54,6 +56,7 @@ services:
       # SBM Fizikus Credentials
       - SbmConnector__Username=your_sbm_username
       - SbmConnector__Password=your_sbm_password
+      - SbmConnector__OutdoorWeatherEnabled=false # optional, enables outdoor temp/humidity
       
       # MQTT Broker Configuration
       - MqttConnector__MqttServer__Host=mqtt.example.com
@@ -66,6 +69,8 @@ services:
       - PublisherConfiguration__SbmTopic=sbm_fizikus # optional
       - PublisherConfiguration__HomeAssistantTopic=homeassistant # optional
       - PublisherConfiguration__ApartmentSystemModeDiscoveryEnabled=false # optional
+      - PublisherConfiguration__ApartmentOutdoorTemperatureDiscoveryEnabled=false # optional
+      - PublisherConfiguration__ApartmentOutdoorHumidityDiscoveryEnabled=false # optional
       - PublisherConfiguration__ThermostatTemperatureDiscoveryEnabled=false # optional
       - PublisherConfiguration__ThermostatTargetTemperatureDiscoveryEnabled=false # optional
       - PublisherConfiguration__ThermostatHumidityDiscoveryEnabled=false # optional
@@ -79,6 +84,7 @@ services:
 |----------------------|-----------------------------------------------------|---------------|----------|
 | `SbmConnector__Username` | Your SBM Fizikus username                           | -             | x        |
 | `SbmConnector__Password` | Your SBM Fizikus password                           | -             | x        |
+| `SbmConnector__OutdoorWeatherEnabled` | Enable outdoor temperature & humidity polling       | false             |          |
 | `MqttConnector__MqttServer__Host` | MQTT broker hostname                                | -             | x        |
 | `MqttConnector__MqttServer__Port` | MQTT broker port (default: 1883)                    | -             | x        |
 | `MqttConnector__MqttServer__Username` | MQTT broker username                                | -             | x        |
@@ -87,6 +93,8 @@ services:
 | `PublisherConfiguration__SbmTopic` | Base MQTT topic for SBM data                        | sbm_fizikus       |          |
 | `PublisherConfiguration__HomeAssistantTopic` | Base MQTT topic for Home Assistant discovery        | homeassistant     |          |
 | `PublisherConfiguration__ApartmentSystemModeDiscoveryEnabled` | Enable/disable auto-discovery for specific entities | false             |          |
+| `PublisherConfiguration__ApartmentOutdoorTemperatureDiscoveryEnabled` | Enable outdoor temperature sensor in Home Assistant | false             |          |
+| `PublisherConfiguration__ApartmentOutdoorHumidityDiscoveryEnabled` | Enable outdoor humidity sensor in Home Assistant    | false             |          |
 | `PublisherConfiguration__ThermostatTemperatureDiscoveryEnabled` | Enable/disable auto-discovery for specific entities | false             |          |
 | `PublisherConfiguration__ThermostatTargetTemperatureDiscoveryEnabled` | Enable/disable auto-discovery for specific entities | false             |          |
 | `PublisherConfiguration__ThermostatHumidityDiscoveryEnabled` | Enable/disable auto-discovery for specific entities | false             |          |

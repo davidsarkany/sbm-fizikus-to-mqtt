@@ -24,7 +24,9 @@ internal static class MapperExtension
         return new MqttApartment
         {
             SystemMode = apartment.SystemMode,
-            LastUpdate = apartment.LastUpdate
+            LastUpdate = apartment.LastUpdate,
+            OutdoorTemperature = apartment.OutdoorTemperature,
+            OutdoorHumidity = apartment.OutdoorHumidity
         };
     }
 }

@@ -7,4 +7,6 @@ public sealed record Apartment
     public required DateTimeOffset LastUpdate { get; init; }
     public required bool RelayConnectionActive { get; init; }
     public required bool ThermostatsConnectionActive { get; init; }
+    public double? OutdoorTemperature { get; init; }
+    public double? OutdoorHumidity { get; init; }
 }

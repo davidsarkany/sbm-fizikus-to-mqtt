@@ -23,7 +23,8 @@ public class TokenServiceTests
         {
             Username = "testuser",
             Password = "testpassword",
-            BaseUrl = "https://test.api.com"
+            BaseUrl = "https://test.api.com",
+            OutdoorWeatherEnabled = false
         });
 
         _tokenService = new TokenService(

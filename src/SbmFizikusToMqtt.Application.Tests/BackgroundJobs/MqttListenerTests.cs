@@ -58,7 +58,9 @@ public sealed class MqttListenerTests
             ThermostatHumidityDiscoveryEnabled = true,
             ThermostatSystemModeDiscoveryEnabled = true,
             ClimateDiscoveryEnabled = true,
-            ApartmentSystemModeDiscoveryEnabled = true
+            ApartmentSystemModeDiscoveryEnabled = true,
+            ApartmentOutdoorTemperatureDiscoveryEnabled = false,
+            ApartmentOutdoorHumidityDiscoveryEnabled = false
         };
 
         _optionsMonitorMock.Setup(x => x.CurrentValue).Returns(_configuration);

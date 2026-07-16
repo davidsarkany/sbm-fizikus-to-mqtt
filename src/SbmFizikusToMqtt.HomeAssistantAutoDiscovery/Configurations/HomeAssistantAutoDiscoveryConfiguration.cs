@@ -19,4 +19,8 @@ public sealed record HomeAssistantAutoDiscoveryConfiguration
     [Required] public required bool ClimateDiscoveryEnabled { get; init; }
 
     [Required] public required bool ApartmentSystemModeDiscoveryEnabled { get; init; }
+
+    [Required] public required bool ApartmentOutdoorTemperatureDiscoveryEnabled { get; init; }
+
+    [Required] public required bool ApartmentOutdoorHumidityDiscoveryEnabled { get; init; }
 }

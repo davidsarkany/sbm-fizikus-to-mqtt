@@ -16,6 +16,8 @@ public class AutoDiscoveryGeneratorTests
     private const string HomeAssistantTopic = "homeassistant/test";
     private readonly Faker<Apartment> _apartmentFaker;
     private readonly ApartmentSystemModeSensor _apartmentSystemModeSensor;
+    private readonly ApartmentOutdoorTemperatureSensor _apartmentOutdoorTemperatureSensor;
+    private readonly ApartmentOutdoorHumiditySensor _apartmentOutdoorHumiditySensor;
 
     private readonly Mock<IOptionsMonitor<HomeAssistantAutoDiscoveryConfiguration>> _optionsMonitorMock;
     private readonly ThermostatClimate _thermostatClimate;
@@ -31,6 +33,8 @@ public class AutoDiscoveryGeneratorTests
 
         // Create concrete strategy instances
         _apartmentSystemModeSensor = new ApartmentSystemModeSensor(SbmTopic, HomeAssistantTopic);
+        _apartmentOutdoorTemperatureSensor = new ApartmentOutdoorTemperatureSensor(SbmTopic, HomeAssistantTopic);
+        _apartmentOutdoorHumiditySensor = new ApartmentOutdoorHumiditySensor(SbmTopic, HomeAssistantTopic);
         _thermostatHumiditySensor = new ThermostatHumiditySensor(SbmTopic, HomeAssistantTopic);
         _thermostatTemperatureSensor = new ThermostatTemperatureSensor(SbmTopic, HomeAssistantTopic);
         _thermostatTargetTemperatureSensor = new ThermostatTargetTemperatureSensor(SbmTopic, HomeAssistantTopic);
@@ -52,7 +56,9 @@ public class AutoDiscoveryGeneratorTests
             .RuleFor(x => x.Thermostats, f => _thermostatFaker.Generate(f.Random.Int(1, 3)))
             .RuleFor(x => x.LastUpdate, f => f.Date.RecentOffset())
             .RuleFor(x => x.RelayConnectionActive, f => f.Random.Bool())
-            .RuleFor(x => x.ThermostatsConnectionActive, f => f.Random.Bool());
+            .RuleFor(x => x.ThermostatsConnectionActive, f => f.Random.Bool())
+            .RuleFor(x => x.OutdoorTemperature, f => f.Random.Double(5, 35))
+            .RuleFor(x => x.OutdoorHumidity, f => f.Random.Double(30, 90));
     }
 
     [Fact]
@@ -60,6 +66,8 @@ public class AutoDiscoveryGeneratorTests
     {
         // Arrange
         var configuration = CreateConfiguration(
+            true,
+            true,
             true,
             true,
             true,
@@ -79,7 +87,7 @@ public class AutoDiscoveryGeneratorTests
         var result = sut.Generate(apartment).ToList();
 
         // Assert
-        var expectedMessageCount = 1 + thermostatCount * 5; // 1 apartment + (5 sensors per thermostat)
+        var expectedMessageCount = 3 + thermostatCount * 5; // 3 apartment + (5 sensors per thermostat)
         Assert.Equal(expectedMessageCount, result.Count);
         Assert.All(result, msg =>
         {
@@ -95,6 +103,8 @@ public class AutoDiscoveryGeneratorTests
         // Arrange
         var configuration = CreateConfiguration(
             true,
+            false,
+            false,
             false,
             false,
             false,
@@ -121,6 +131,8 @@ public class AutoDiscoveryGeneratorTests
     {
         // Arrange
         var configuration = CreateConfiguration(
+            false,
+            false,
             false,
             false,
             true,
@@ -154,6 +166,8 @@ public class AutoDiscoveryGeneratorTests
             false,
             false,
             false,
+            false,
+            false,
             false
         );
 
@@ -180,6 +194,8 @@ public class AutoDiscoveryGeneratorTests
             true,
             true,
             true,
+            true,
+            true,
             true
         );
 
@@ -200,8 +216,8 @@ public class AutoDiscoveryGeneratorTests
         var result = sut.Generate(apartment).ToList();
 
         // Assert
-        Assert.Single(result);
-        Assert.Contains("apartment", result[0].Topic);
+        Assert.Equal(3, result.Count);
+        Assert.All(result, msg => Assert.Contains("apartment", msg.Topic));
     }
 
     [Fact]
@@ -209,6 +225,8 @@ public class AutoDiscoveryGeneratorTests
     {
         // Arrange
         var configuration = CreateConfiguration(
+            false,
+            false,
             false,
             false,
             true,
@@ -248,6 +266,8 @@ public class AutoDiscoveryGeneratorTests
             false,
             false,
             false,
+            false,
+            false,
             true
         );
 
@@ -278,6 +298,8 @@ public class AutoDiscoveryGeneratorTests
     {
         // Arrange
         var configuration = CreateConfiguration(
+            false,
+            false,
             false,
             true,
             true,
@@ -313,6 +335,8 @@ public class AutoDiscoveryGeneratorTests
         return new AutoDiscoveryGenerator(
             _optionsMonitorMock.Object,
             _apartmentSystemModeSensor,
+            _apartmentOutdoorTemperatureSensor,
+            _apartmentOutdoorHumiditySensor,
             _thermostatHumiditySensor,
             _thermostatTemperatureSensor,
             _thermostatTargetTemperatureSensor,
@@ -323,6 +347,8 @@ public class AutoDiscoveryGeneratorTests
 
     private static HomeAssistantAutoDiscoveryConfiguration CreateConfiguration(
         bool apartmentSystemModeEnabled,
+        bool apartmentOutdoorTemperatureEnabled,
+        bool apartmentOutdoorHumidityEnabled,
         bool thermostatHumidityEnabled,
         bool thermostatTemperatureEnabled,
         bool thermostatTargetTemperatureEnabled,
@@ -338,7 +364,9 @@ public class AutoDiscoveryGeneratorTests
             ThermostatHumidityDiscoveryEnabled = thermostatHumidityEnabled,
             ThermostatSystemModeDiscoveryEnabled = thermostatSystemModeEnabled,
             ClimateDiscoveryEnabled = climateEnabled,
-            ApartmentSystemModeDiscoveryEnabled = apartmentSystemModeEnabled
+            ApartmentSystemModeDiscoveryEnabled = apartmentSystemModeEnabled,
+            ApartmentOutdoorTemperatureDiscoveryEnabled = apartmentOutdoorTemperatureEnabled,
+            ApartmentOutdoorHumidityDiscoveryEnabled = apartmentOutdoorHumidityEnabled
         };
     }
 }

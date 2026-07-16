@@ -191,6 +191,36 @@ public class MapperExtensionsTests
         Assert.Equal(expectedLastUpdate, result.LastUpdate);
     }
 
+    [Fact]
+    public void ToApartment_WithOutdoorWeather_ShouldMapOutdoorFields()
+    {
+        // Arrange
+        var response = CreateSbmApartmentInfoResponse();
+        const double expectedTemperature = 12.5;
+        const double expectedHumidity = 68.0;
+
+        // Act
+        var result = response.ToApartment(expectedTemperature, expectedHumidity);
+
+        // Assert
+        Assert.Equal(expectedTemperature, result.OutdoorTemperature);
+        Assert.Equal(expectedHumidity, result.OutdoorHumidity);
+    }
+
+    [Fact]
+    public void ToApartment_WithoutOutdoorWeather_ShouldLeaveOutdoorFieldsNull()
+    {
+        // Arrange
+        var response = CreateSbmApartmentInfoResponse();
+
+        // Act
+        var result = response.ToApartment();
+
+        // Assert
+        Assert.Null(result.OutdoorTemperature);
+        Assert.Null(result.OutdoorHumidity);
+    }
+
     private static SbmApartmentInfoResponse CreateSbmApartmentInfoResponse(
         int operationMode = (int)OperationMode.Heating,
         List<SbmApartmentInfoResponse.Thermostat>? thermostats = null,

@@ -19,7 +19,8 @@ public class IServiceCollectionExtensionTests
         {
             BaseUrl = "https://test.example.com",
             Username = "testuser",
-            Password = "testpass"
+            Password = "testpass",
+            OutdoorWeatherEnabled = false
         };
         services.AddSingleton(Options.Create(config));
 
@@ -66,7 +67,8 @@ public class IServiceCollectionExtensionTests
         {
             BaseUrl = testBaseUrl,
             Username = "testuser",
-            Password = "testpass"
+            Password = "testpass",
+            OutdoorWeatherEnabled = false
         };
         services.AddSingleton(Options.Create(config));
 
@@ -109,7 +111,8 @@ public class IServiceCollectionExtensionTests
         {
             BaseUrl = "https://test.example.com",
             Username = "testuser",
-            Password = "testpass"
+            Password = "testpass",
+            OutdoorWeatherEnabled = false
         };
         services.AddSingleton(Options.Create(config));
 
@@ -139,7 +142,8 @@ public class IServiceCollectionExtensionTests
         {
             BaseUrl = baseUrl,
             Username = "testuser",
-            Password = "testpass"
+            Password = "testpass",
+            OutdoorWeatherEnabled = false
         };
         services.AddSingleton(Options.Create(config));
 
@@ -163,7 +167,8 @@ public class IServiceCollectionExtensionTests
         {
             BaseUrl = "https://test.example.com",
             Username = "testuser",
-            Password = "testpass"
+            Password = "testpass",
+            OutdoorWeatherEnabled = false
         };
         services.AddSingleton(Options.Create(config));
 
@@ -200,7 +205,8 @@ public class IServiceCollectionExtensionTests
         {
             BaseUrl = "https://test.example.com",
             Username = "testuser",
-            Password = "testpass"
+            Password = "testpass",
+            OutdoorWeatherEnabled = false
         };
         services.AddSingleton(Options.Create(config));
 
@@ -229,7 +235,8 @@ public class IServiceCollectionExtensionTests
         {
             BaseUrl = "https://test.example.com",
             Username = "testuser",
-            Password = "testpass"
+            Password = "testpass",
+            OutdoorWeatherEnabled = false
         };
         services.AddSingleton(Options.Create(config));
 
@@ -255,7 +262,8 @@ public class IServiceCollectionExtensionTests
         {
             BaseUrl = "https://valid.example.com",
             Username = "user",
-            Password = "pass"
+            Password = "pass",
+            OutdoorWeatherEnabled = false
         };
         services.AddSingleton(Options.Create(config));
 
@@ -286,7 +294,8 @@ public class IServiceCollectionExtensionTests
         {
             BaseUrl = "https://config-test.example.com",
             Username = "configuser",
-            Password = "configpass"
+            Password = "configpass",
+            OutdoorWeatherEnabled = false
         };
         services.AddSingleton(Options.Create(config));
 

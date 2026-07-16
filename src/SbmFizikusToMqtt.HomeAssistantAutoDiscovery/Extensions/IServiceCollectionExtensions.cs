@@ -36,6 +36,16 @@ public static class ServiceCollectionExtensions
             var options = x.GetService<IOptionsMonitor<HomeAssistantAutoDiscoveryConfiguration>>()!.CurrentValue;
             return new ApartmentSystemModeSensor(options.SbmTopic, options.HomeAssistantTopic);
         });
+        serviceCollection.AddSingleton<ApartmentOutdoorTemperatureSensor>(x =>
+        {
+            var options = x.GetService<IOptionsMonitor<HomeAssistantAutoDiscoveryConfiguration>>()!.CurrentValue;
+            return new ApartmentOutdoorTemperatureSensor(options.SbmTopic, options.HomeAssistantTopic);
+        });
+        serviceCollection.AddSingleton<ApartmentOutdoorHumiditySensor>(x =>
+        {
+            var options = x.GetService<IOptionsMonitor<HomeAssistantAutoDiscoveryConfiguration>>()!.CurrentValue;
+            return new ApartmentOutdoorHumiditySensor(options.SbmTopic, options.HomeAssistantTopic);
+        });
         serviceCollection.AddSingleton<ThermostatClimate>(x =>
         {
             var options = x.GetService<IOptionsMonitor<HomeAssistantAutoDiscoveryConfiguration>>()!.CurrentValue;

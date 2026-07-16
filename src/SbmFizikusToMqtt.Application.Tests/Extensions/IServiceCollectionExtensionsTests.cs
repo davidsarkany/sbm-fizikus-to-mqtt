@@ -155,7 +155,9 @@ public sealed class IServiceCollectionExtensionsTests
             ThermostatHumidityDiscoveryEnabled = true,
             ThermostatSystemModeDiscoveryEnabled = true,
             ClimateDiscoveryEnabled = true,
-            ApartmentSystemModeDiscoveryEnabled = true
+            ApartmentSystemModeDiscoveryEnabled = true,
+            ApartmentOutdoorTemperatureDiscoveryEnabled = false,
+            ApartmentOutdoorHumidityDiscoveryEnabled = false
         });
 
         services.AddSingleton(new Mock<IMqttClient>().Object);

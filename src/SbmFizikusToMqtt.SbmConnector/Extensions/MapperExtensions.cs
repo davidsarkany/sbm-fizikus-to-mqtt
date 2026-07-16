@@ -5,7 +5,8 @@ namespace SbmFizikusToMqtt.SbmConnector.Extensions;
 
 internal static class MapperExtensions
 {
-    internal static Apartment ToApartment(this SbmApartmentInfoResponse apartmentInfo)
+    internal static Apartment ToApartment(this SbmApartmentInfoResponse apartmentInfo,
+        double? outdoorTemperature = null, double? outdoorHumidity = null)
     {
         return new Apartment
         {
@@ -13,7 +14,9 @@ internal static class MapperExtensions
             Thermostats = apartmentInfo.Thermostats.Select(x => x.ToThermostat()),
             LastUpdate = apartmentInfo.LastStateUpdate,
             RelayConnectionActive = apartmentInfo.CommunicationActiveRelayModule,
-            ThermostatsConnectionActive = apartmentInfo.CommunicationActiveThermostats
+            ThermostatsConnectionActive = apartmentInfo.CommunicationActiveThermostats,
+            OutdoorTemperature = outdoorTemperature,
+            OutdoorHumidity = outdoorHumidity
         };
     }
 

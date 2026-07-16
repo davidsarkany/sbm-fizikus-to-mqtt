@@ -109,6 +109,38 @@ public class ServiceCollectionExtensionsTests
     }
 
     [Fact]
+    public void ConfigureHomeAssistantAutoDiscovery_RegistersApartmentOutdoorTemperatureSensor()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        ConfigureServicesWithOptions(services);
+
+        // Act
+        services.ConfigureHomeAssistantAutoDiscovery();
+        var serviceProvider = services.BuildServiceProvider();
+
+        // Assert
+        var service = serviceProvider.GetService<ApartmentOutdoorTemperatureSensor>();
+        Assert.NotNull(service);
+    }
+
+    [Fact]
+    public void ConfigureHomeAssistantAutoDiscovery_RegistersApartmentOutdoorHumiditySensor()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        ConfigureServicesWithOptions(services);
+
+        // Act
+        services.ConfigureHomeAssistantAutoDiscovery();
+        var serviceProvider = services.BuildServiceProvider();
+
+        // Assert
+        var service = serviceProvider.GetService<ApartmentOutdoorHumiditySensor>();
+        Assert.NotNull(service);
+    }
+
+    [Fact]
     public void ConfigureHomeAssistantAutoDiscovery_RegistersThermostatClimate()
     {
         // Arrange
@@ -354,6 +386,14 @@ public class ServiceCollectionExtensionsTests
         var apartmentMode2 = serviceProvider.GetRequiredService<ApartmentSystemModeSensor>();
         Assert.Same(apartmentMode1, apartmentMode2);
 
+        var outdoorTemp1 = serviceProvider.GetRequiredService<ApartmentOutdoorTemperatureSensor>();
+        var outdoorTemp2 = serviceProvider.GetRequiredService<ApartmentOutdoorTemperatureSensor>();
+        Assert.Same(outdoorTemp1, outdoorTemp2);
+
+        var outdoorHum1 = serviceProvider.GetRequiredService<ApartmentOutdoorHumiditySensor>();
+        var outdoorHum2 = serviceProvider.GetRequiredService<ApartmentOutdoorHumiditySensor>();
+        Assert.Same(outdoorHum1, outdoorHum2);
+
         var climate1 = serviceProvider.GetRequiredService<ThermostatClimate>();
         var climate2 = serviceProvider.GetRequiredService<ThermostatClimate>();
         Assert.Same(climate1, climate2);
@@ -387,7 +427,9 @@ public class ServiceCollectionExtensionsTests
             ThermostatHumidityDiscoveryEnabled = true,
             ThermostatSystemModeDiscoveryEnabled = true,
             ClimateDiscoveryEnabled = true,
-            ApartmentSystemModeDiscoveryEnabled = true
+            ApartmentSystemModeDiscoveryEnabled = true,
+            ApartmentOutdoorTemperatureDiscoveryEnabled = true,
+            ApartmentOutdoorHumidityDiscoveryEnabled = true
         };
 
         services.AddSingleton<IOptionsMonitor<HomeAssistantAutoDiscoveryConfiguration>>(_ =>

@@ -15,6 +15,8 @@ internal sealed class AutoDiscoveryGenerator : IAutoDiscoveryGenerator
     public AutoDiscoveryGenerator(
         IOptionsMonitor<HomeAssistantAutoDiscoveryConfiguration> optionsMonitor,
         ApartmentSystemModeSensor apartmentSystemModeSensor,
+        ApartmentOutdoorTemperatureSensor apartmentOutdoorTemperatureSensor,
+        ApartmentOutdoorHumiditySensor apartmentOutdoorHumiditySensor,
         ThermostatHumiditySensor thermostatHumiditySensor,
         ThermostatTemperatureSensor thermostatTemperatureSensor,
         ThermostatTargetTemperatureSensor thermostatTargetTemperatureSensor,
@@ -26,6 +28,12 @@ internal sealed class AutoDiscoveryGenerator : IAutoDiscoveryGenerator
 
         if (options.ApartmentSystemModeDiscoveryEnabled)
             _apartmentDiscovery.Add(apartmentSystemModeSensor);
+
+        if (options.ApartmentOutdoorTemperatureDiscoveryEnabled)
+            _apartmentDiscovery.Add(apartmentOutdoorTemperatureSensor);
+
+        if (options.ApartmentOutdoorHumidityDiscoveryEnabled)
+            _apartmentDiscovery.Add(apartmentOutdoorHumiditySensor);
 
         if (options.ThermostatHumidityDiscoveryEnabled)
             _thermostatDiscovery.Add(thermostatHumiditySensor);
