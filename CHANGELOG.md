@@ -5,6 +5,18 @@ All notable changes to SBM Fizikus to MQTT will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-07-22
+
+### Changed
+
+- Application now immediately shuts down on unexpected MQTT disconnection, relying on the container restart policy (`restart: unless-stopped`) to perform a clean restart
+- Removed exponential backoff reconnection logic in favor of the simpler restart approach — this guarantees Home Assistant auto-discovery messages and MQTT subscriptions are fully re-established after broker or network interruptions
+- Removed `MqttConnector:MqttReconnect` configuration section (`MaxReconnectAttempts`, `InitialDelaySeconds`, `MaxDelaySeconds` are no longer used)
+
+### Fixed
+
+- Home Assistant losing discovery messages after MQTT broker restarts — previously, the service would reconnect but never re-publish discovery messages or re-subscribe to topics
+
 ## [1.1.0] - 2026-07-16
 
 ### Added
@@ -59,6 +71,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Docker and Docker Compose deployment support
 - .NET 10 cross-platform application
 
+[2.0.0]: https://github.com/USER/sbm-fizikus-to-mqtt/compare/v1.1.0...v2.0.0
 [1.1.0]: https://github.com/USER/sbm-fizikus-to-mqtt/compare/v1.0.5...v1.1.0
 [1.0.5]: https://github.com/USER/sbm-fizikus-to-mqtt/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/USER/sbm-fizikus-to-mqtt/compare/v1.0.3...v1.0.4

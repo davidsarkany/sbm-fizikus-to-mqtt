@@ -1,8 +1,7 @@
-﻿using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
 using MQTTnet;
-using SbmFizikusToMqtt.MqttConnector.Configurations;
 using SbmFizikusToMqtt.MqttConnector.Services;
 
 namespace SbmFizikusToMqtt.MqttConnector.Tests.Services;
@@ -13,7 +12,6 @@ public sealed class MqttConnectionServiceTests
     private readonly Mock<ILogger<MqttConnectionService>> _loggerMock;
     private readonly Mock<IMqttClient> _mqttClientMock;
     private readonly MqttClientOptions _mqttClientOptions;
-    private readonly MqttReconnectConfiguration _reconnectConfiguration;
 
     public MqttConnectionServiceTests()
     {
@@ -23,12 +21,6 @@ public sealed class MqttConnectionServiceTests
             .Build();
         _loggerMock = new Mock<ILogger<MqttConnectionService>>();
         _hostApplicationLifetimeMock = new Mock<IHostApplicationLifetime>();
-        _reconnectConfiguration = new MqttReconnectConfiguration
-        {
-            MaxReconnectAttempts = 3,
-            InitialDelaySeconds = 1,
-            MaxDelaySeconds = 10
-        };
     }
 
     private MqttConnectionService CreateSut()
@@ -36,7 +28,6 @@ public sealed class MqttConnectionServiceTests
         return new MqttConnectionService(
             _mqttClientMock.Object,
             _mqttClientOptions,
-            _reconnectConfiguration,
             _hostApplicationLifetimeMock.Object,
             _loggerMock.Object);
     }
@@ -205,7 +196,7 @@ public sealed class MqttConnectionServiceTests
     }
 
     [Fact]
-    public async Task HandleDisconnectedAsync_GracefulDisconnect_DoesNotReconnect()
+    public async Task HandleDisconnectedAsync_GracefulDisconnect_DoesNotStopApplication()
     {
         // Arrange
         var sut = CreateSut();
@@ -224,14 +215,11 @@ public sealed class MqttConnectionServiceTests
         await sut.HandleDisconnectedAsync(disconnectArgs);
 
         // Assert
-        // ConnectAsync was called once during StartAsync, not again after disconnect
-        _mqttClientMock.Verify(
-            x => x.ConnectAsync(It.IsAny<MqttClientOptions>(), It.IsAny<CancellationToken>()),
-            Times.Once);
+        _hostApplicationLifetimeMock.Verify(x => x.StopApplication(), Times.Never);
     }
 
     [Fact]
-    public async Task HandleDisconnectedAsync_ClientWasNotConnected_DoesNotReconnect()
+    public async Task HandleDisconnectedAsync_ClientWasNotConnected_DoesNotStopApplication()
     {
         // Arrange
         var sut = CreateSut();
@@ -249,55 +237,18 @@ public sealed class MqttConnectionServiceTests
         await sut.HandleDisconnectedAsync(disconnectArgs);
 
         // Assert
-        _mqttClientMock.Verify(
-            x => x.ConnectAsync(It.IsAny<MqttClientOptions>(), It.IsAny<CancellationToken>()),
-            Times.Once);
-    }
-
-    [Fact]
-    public async Task HandleDisconnectedAsync_ReconnectSucceedsOnFirstAttempt_DoesNotStopApplication()
-    {
-        // Arrange
-        var sut = CreateSut();
-        var callCount = 0;
-
-        _mqttClientMock
-            .Setup(x => x.ConnectAsync(It.IsAny<MqttClientOptions>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(() =>
-            {
-                callCount++;
-                return new MqttClientConnectResult();
-            });
-
-        await sut.StartAsync(CancellationToken.None);
-
-        var disconnectArgs = new MqttClientDisconnectedEventArgs(
-            true, null, MqttClientDisconnectReason.UnspecifiedError, null, null, null);
-
-        // Act
-        await sut.HandleDisconnectedAsync(disconnectArgs);
-
-        // Assert
-        Assert.Equal(2, callCount); // Once for StartAsync, once for reconnect
         _hostApplicationLifetimeMock.Verify(x => x.StopApplication(), Times.Never);
     }
 
     [Fact]
-    public async Task HandleDisconnectedAsync_AllReconnectAttemptsFail_StopsApplication()
+    public async Task HandleDisconnectedAsync_UnexpectedDisconnect_StopsApplication()
     {
         // Arrange
         var sut = CreateSut();
-        var connectCallCount = 0;
 
         _mqttClientMock
             .Setup(x => x.ConnectAsync(It.IsAny<MqttClientOptions>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(() =>
-            {
-                connectCallCount++;
-                if (connectCallCount == 1)
-                    return new MqttClientConnectResult(); // Initial connect succeeds
-                throw new InvalidOperationException("Connection refused");
-            });
+            .ReturnsAsync(new MqttClientConnectResult());
 
         await sut.StartAsync(CancellationToken.None);
 
@@ -308,61 +259,6 @@ public sealed class MqttConnectionServiceTests
         await sut.HandleDisconnectedAsync(disconnectArgs);
 
         // Assert
-        // 1 initial + 3 reconnect attempts
-        Assert.Equal(4, connectCallCount);
         _hostApplicationLifetimeMock.Verify(x => x.StopApplication(), Times.Once);
-    }
-
-    [Fact]
-    public async Task HandleDisconnectedAsync_ReconnectSucceedsOnSecondAttempt_DoesNotStopApplication()
-    {
-        // Arrange
-        var sut = CreateSut();
-        var connectCallCount = 0;
-
-        _mqttClientMock
-            .Setup(x => x.ConnectAsync(It.IsAny<MqttClientOptions>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(() =>
-            {
-                connectCallCount++;
-                if (connectCallCount <= 2)
-                {
-                    if (connectCallCount == 2)
-                        throw new InvalidOperationException("Connection refused");
-                }
-
-                return new MqttClientConnectResult();
-            });
-
-        await sut.StartAsync(CancellationToken.None);
-
-        var disconnectArgs = new MqttClientDisconnectedEventArgs(
-            true, null, MqttClientDisconnectReason.UnspecifiedError, null, null, null);
-
-        // Act
-        await sut.HandleDisconnectedAsync(disconnectArgs);
-
-        // Assert
-        // 1 initial + 1 failed reconnect + 1 successful reconnect
-        Assert.Equal(3, connectCallCount);
-        _hostApplicationLifetimeMock.Verify(x => x.StopApplication(), Times.Never);
-    }
-
-    [Theory]
-    [InlineData(1, 1)] // 1 * 2^0 = 1
-    [InlineData(2, 2)] // 1 * 2^1 = 2
-    [InlineData(3, 4)] // 1 * 2^2 = 4
-    [InlineData(4, 8)] // 1 * 2^3 = 8
-    [InlineData(5, 10)] // 1 * 2^4 = 16, capped at MaxDelaySeconds=10
-    public void CalculateDelay_VariousAttempts_ReturnsExponentialBackoffWithCap(int attempt, int expectedDelay)
-    {
-        // Arrange
-        var sut = CreateSut();
-
-        // Act
-        var delay = sut.CalculateDelay(attempt);
-
-        // Assert
-        Assert.Equal(expectedDelay, delay);
     }
 }

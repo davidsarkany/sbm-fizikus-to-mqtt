@@ -1,4 +1,4 @@
-﻿# SBM Fizikus to MQTT
+# SBM Fizikus to MQTT
 
 A .NET 10 application that bridges SBM-Verting heating systems with MQTT, enabling integration with home automation systems like Home Assistant.
 
@@ -146,6 +146,7 @@ docker-compose up -d
 2. **Publishing**: Data is published to MQTT topics under the configured base topic
 3. **Listening**: The application listens to `/devices/+/set` topics for control commands
 4. **Home Assistant**: Devices are auto-discovered in Home Assistant via MQTT discovery
+5. **Resilience**: If the MQTT connection drops, the application shuts down and the container restart policy (`restart: unless-stopped`) automatically restarts it, re-establishing all subscriptions and re-publishing discovery messages
 
 ### MQTT Topics
 
@@ -182,6 +183,7 @@ Test projects include:
 - Verify SBM Fizikus credentials
 - Ensure MQTT broker is running and accessible
 - Check network connectivity and firewall rules
+- If the MQTT broker restarts, the application will automatically detect the disconnection, shut down, and restart via Docker — no manual intervention is needed
 
 ### Missing Data
 - Check MQTT broker for message publication
@@ -191,3 +193,4 @@ Test projects include:
 - Enable discovery flags
 - Verify MQTT integration is configured in Home Assistant
 - Check Home Assistant logs for discovery messages
+- Discovery messages are re-published on every application restart, so restarting the container will re-register all entities

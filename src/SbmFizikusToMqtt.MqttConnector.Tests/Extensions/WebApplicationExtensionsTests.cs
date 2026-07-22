@@ -1,4 +1,4 @@
-﻿using Bogus;
+using Bogus;
 using Microsoft.Extensions.DependencyInjection;
 using MQTTnet;
 using SbmFizikusToMqtt.MqttConnector.Configurations;
@@ -22,11 +22,6 @@ public sealed class WebApplicationExtensionsTests
         new Faker<MqttConnectorPublisherConfiguration>()
             .RuleFor(x => x.SbmTopic, f => f.Random.Word());
 
-    private static readonly Faker<MqttReconnectConfiguration> MqttReconnectConfigurationFaker =
-        new Faker<MqttReconnectConfiguration>()
-            .RuleFor(x => x.MaxReconnectAttempts, f => f.Random.Int(1, 20))
-            .RuleFor(x => x.InitialDelaySeconds, f => f.Random.Int(1, 5))
-            .RuleFor(x => x.MaxDelaySeconds, f => f.Random.Int(30, 300));
 
     private readonly ITestOutputHelper _testOutputHelper;
 
@@ -43,10 +38,9 @@ public sealed class WebApplicationExtensionsTests
         var serviceCollection = new ServiceCollection();
         var serverConfig = MqttServerConfigurationFaker.Generate();
         var publisherConfig = MqttConnectorPublisherConfigurationFaker.Generate();
-        var reconnectConfig = MqttReconnectConfigurationFaker.Generate();
 
         // Act
-        serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig, reconnectConfig);
+        serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig);
 
         // Assert
         var descriptor = serviceCollection.FirstOrDefault(d => d.ServiceType == typeof(IMqttPublisher));
@@ -61,10 +55,9 @@ public sealed class WebApplicationExtensionsTests
         var serviceCollection = new ServiceCollection();
         var serverConfig = MqttServerConfigurationFaker.Generate();
         var publisherConfig = MqttConnectorPublisherConfigurationFaker.Generate();
-        var reconnectConfig = MqttReconnectConfigurationFaker.Generate();
 
         // Act
-        serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig, reconnectConfig);
+        serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig);
 
         // Assert
         var descriptor = serviceCollection.FirstOrDefault(d => d.ServiceType == typeof(IMqttClient));
@@ -79,10 +72,9 @@ public sealed class WebApplicationExtensionsTests
         var serviceCollection = new ServiceCollection();
         var serverConfig = MqttServerConfigurationFaker.Generate();
         var publisherConfig = MqttConnectorPublisherConfigurationFaker.Generate();
-        var reconnectConfig = MqttReconnectConfigurationFaker.Generate();
 
         // Act
-        var result = serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig, reconnectConfig);
+        var result = serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig);
 
         // Assert
         Assert.Same(serviceCollection, result);
@@ -95,11 +87,10 @@ public sealed class WebApplicationExtensionsTests
         var serviceCollection = new ServiceCollection();
         var serverConfig = MqttServerConfigurationFaker.Generate();
         var publisherConfig = MqttConnectorPublisherConfigurationFaker.Generate();
-        var reconnectConfig = MqttReconnectConfigurationFaker.Generate();
 
         // Act
-        serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig, reconnectConfig);
-        serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig, reconnectConfig);
+        serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig);
+        serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig);
 
         // Assert
         var mqttPublisherCount = serviceCollection.Count(d => d.ServiceType == typeof(IMqttPublisher));
@@ -121,10 +112,9 @@ public sealed class WebApplicationExtensionsTests
         {
             SbmTopic = "sbm/test/house-1/apartment_2"
         };
-        var reconnectConfig = MqttReconnectConfigurationFaker.Generate();
 
         // Act
-        serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig, reconnectConfig);
+        serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig);
 
         // Assert - verify service provider can be created
         var serviceProvider = serviceCollection.BuildServiceProvider();
@@ -146,10 +136,9 @@ public sealed class WebApplicationExtensionsTests
             ClientId = new string('a', 200) // Very long client ID
         };
         var publisherConfig = MqttConnectorPublisherConfigurationFaker.Generate();
-        var reconnectConfig = MqttReconnectConfigurationFaker.Generate();
 
         // Act
-        serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig, reconnectConfig);
+        serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig);
 
         // Assert
         var serviceProvider = serviceCollection.BuildServiceProvider();
@@ -167,10 +156,9 @@ public sealed class WebApplicationExtensionsTests
         {
             SbmTopic = string.Empty
         };
-        var reconnectConfig = MqttReconnectConfigurationFaker.Generate();
 
         // Act
-        serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig, reconnectConfig);
+        serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig);
 
         // Assert
         var descriptor = serviceCollection.FirstOrDefault(d => d.ServiceType == typeof(IMqttPublisher));
@@ -187,10 +175,9 @@ public sealed class WebApplicationExtensionsTests
         {
             SbmTopic = "   "
         };
-        var reconnectConfig = MqttReconnectConfigurationFaker.Generate();
 
         // Act
-        serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig, reconnectConfig);
+        serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig);
 
         // Assert
         var descriptor = serviceCollection.FirstOrDefault(d => d.ServiceType == typeof(IMqttPublisher));
@@ -211,10 +198,9 @@ public sealed class WebApplicationExtensionsTests
             ClientId = "test-client"
         };
         var publisherConfig = MqttConnectorPublisherConfigurationFaker.Generate();
-        var reconnectConfig = MqttReconnectConfigurationFaker.Generate();
 
         // Act
-        serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig, reconnectConfig);
+        serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig);
 
         // Assert
         var descriptor = serviceCollection.FirstOrDefault(d => d.ServiceType == typeof(IMqttPublisher));
@@ -235,10 +221,9 @@ public sealed class WebApplicationExtensionsTests
             ClientId = "test-client"
         };
         var publisherConfig = MqttConnectorPublisherConfigurationFaker.Generate();
-        var reconnectConfig = MqttReconnectConfigurationFaker.Generate();
 
         // Act
-        serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig, reconnectConfig);
+        serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig);
 
         // Assert
         var descriptor = serviceCollection.FirstOrDefault(d => d.ServiceType == typeof(IMqttPublisher));
@@ -259,10 +244,9 @@ public sealed class WebApplicationExtensionsTests
             ClientId = "test-client"
         };
         var publisherConfig = MqttConnectorPublisherConfigurationFaker.Generate();
-        var reconnectConfig = MqttReconnectConfigurationFaker.Generate();
 
         // Act
-        serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig, reconnectConfig);
+        serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig);
 
         // Assert
         var descriptor = serviceCollection.FirstOrDefault(d => d.ServiceType == typeof(IMqttPublisher));
@@ -275,7 +259,6 @@ public sealed class WebApplicationExtensionsTests
         // Arrange
         var ports = new[] { 1883, 8883, 9001, 1884 };
         var publisherConfig = MqttConnectorPublisherConfigurationFaker.Generate();
-        var reconnectConfig = MqttReconnectConfigurationFaker.Generate();
 
         foreach (var port in ports)
         {
@@ -289,7 +272,7 @@ public sealed class WebApplicationExtensionsTests
                 Password = "pass",
                 ClientId = $"test-client-{port}"
             };
-            serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig, reconnectConfig);
+            serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig);
 
             // Assert
             var descriptor = serviceCollection.FirstOrDefault(d => d.ServiceType == typeof(IMqttPublisher));
@@ -311,10 +294,9 @@ public sealed class WebApplicationExtensionsTests
             ClientId = "test-client"
         };
         var publisherConfig = MqttConnectorPublisherConfigurationFaker.Generate();
-        var reconnectConfig = MqttReconnectConfigurationFaker.Generate();
 
         // Act
-        serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig, reconnectConfig);
+        serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig);
 
         // Assert
         var descriptor = serviceCollection.FirstOrDefault(d => d.ServiceType == typeof(IMqttPublisher));
@@ -331,10 +313,9 @@ public sealed class WebApplicationExtensionsTests
         {
             SbmTopic = "sbm/building/apartment/thermostat"
         };
-        var reconnectConfig = MqttReconnectConfigurationFaker.Generate();
 
         // Act
-        serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig, reconnectConfig);
+        serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig);
 
         // Assert
         var descriptor = serviceCollection.FirstOrDefault(d => d.ServiceType == typeof(IMqttPublisher));
@@ -351,10 +332,9 @@ public sealed class WebApplicationExtensionsTests
         {
             SbmTopic = "/sbm/test/"
         };
-        var reconnectConfig = MqttReconnectConfigurationFaker.Generate();
 
         // Act
-        serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig, reconnectConfig);
+        serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig);
 
         // Assert
         var descriptor = serviceCollection.FirstOrDefault(d => d.ServiceType == typeof(IMqttPublisher));
@@ -376,10 +356,9 @@ public sealed class WebApplicationExtensionsTests
             ClientId = guid.ToString()
         };
         var publisherConfig = MqttConnectorPublisherConfigurationFaker.Generate();
-        var reconnectConfig = MqttReconnectConfigurationFaker.Generate();
 
         // Act
-        serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig, reconnectConfig);
+        serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig);
 
         // Assert
         var descriptor = serviceCollection.FirstOrDefault(d => d.ServiceType == typeof(IMqttPublisher));
@@ -395,10 +374,9 @@ public sealed class WebApplicationExtensionsTests
         serviceCollection.AddLogging();
         var serverConfig = MqttServerConfigurationFaker.Generate();
         var publisherConfig = MqttConnectorPublisherConfigurationFaker.Generate();
-        var reconnectConfig = MqttReconnectConfigurationFaker.Generate();
 
         // Act
-        serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig, reconnectConfig);
+        serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig);
 
         // Assert
         var descriptor = serviceCollection.FirstOrDefault(d => d.ServiceType == typeof(IMqttPublisher));
@@ -415,18 +393,17 @@ public sealed class WebApplicationExtensionsTests
         {
             Host = "localhost",
             Port = 1883,
-            Username = "тест",
-            Password = "пароль",
-            ClientId = "клиент"
+            Username = "????",
+            Password = "??????",
+            ClientId = "??????"
         };
         var publisherConfig = new MqttConnectorPublisherConfiguration
         {
-            SbmTopic = "дома/квартира"
+            SbmTopic = "????/????????"
         };
-        var reconnectConfig = MqttReconnectConfigurationFaker.Generate();
 
         // Act
-        serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig, reconnectConfig);
+        serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig);
 
         // Assert
         var descriptor = serviceCollection.FirstOrDefault(d => d.ServiceType == typeof(IMqttPublisher));
@@ -447,10 +424,9 @@ public sealed class WebApplicationExtensionsTests
             ClientId = "Test-Client"
         };
         var publisherConfig = MqttConnectorPublisherConfigurationFaker.Generate();
-        var reconnectConfig = MqttReconnectConfigurationFaker.Generate();
 
         // Act
-        serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig, reconnectConfig);
+        serviceCollection.ConfigureMqttPublisher(serverConfig, publisherConfig);
 
         // Assert
         var descriptor = serviceCollection.FirstOrDefault(d => d.ServiceType == typeof(IMqttPublisher));

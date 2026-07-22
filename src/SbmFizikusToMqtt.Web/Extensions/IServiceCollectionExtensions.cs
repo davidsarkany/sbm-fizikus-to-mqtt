@@ -1,4 +1,4 @@
-﻿using SbmFizikusToMqtt.Application.Configurations;
+using SbmFizikusToMqtt.Application.Configurations;
 using SbmFizikusToMqtt.Application.Extensions;
 using SbmFizikusToMqtt.HomeAssistantAutoDiscovery.Configurations;
 using SbmFizikusToMqtt.HomeAssistantAutoDiscovery.Extensions;
@@ -14,7 +14,6 @@ public static class ServiceCollectionExtensions
 {
     private const string SbmCredentialConfigurationSection = "SbmConnector";
     private const string MqttServerConfigurationSection = "MqttConnector:MqttServer";
-    private const string MqttReconnectConfigurationSection = "MqttConnector:MqttReconnect";
     private const string PublisherConfigurationSection = "PublisherConfiguration";
 
     extension(IServiceCollection services)
@@ -63,14 +62,9 @@ public static class ServiceCollectionExtensions
                                   ?? throw new InvalidOperationException(
                                       $"Missing configuration section: {PublisherConfigurationSection}");
 
-            var reconnectConfig = configuration
-                .GetSection(MqttReconnectConfigurationSection)
-                .Get<MqttReconnectConfiguration>() ?? throw new InvalidOperationException(
-                $"Missing configuration section: {MqttReconnectConfigurationSection}");
-
             services.ConfigureSbmConnector();
             services.ConfigureHomeAssistantAutoDiscovery();
-            services.ConfigureMqttPublisher(mqttServerConfig, publisherConfig, reconnectConfig);
+            services.ConfigureMqttPublisher(mqttServerConfig, publisherConfig);
             services.AddMqttListenerBackgroundService();
             services.AddInitialSbmPollingJob();
 

@@ -10,11 +10,8 @@ public static class WebApplicationExtensions
 {
     public static IServiceCollection ConfigureMqttPublisher(this IServiceCollection serviceCollection,
         MqttServerConfiguration mqttServerConfiguration,
-        MqttConnectorPublisherConfiguration mqttConnectorPublisherConfiguration,
-        MqttReconnectConfiguration mqttReconnectConfiguration)
+        MqttConnectorPublisherConfiguration mqttConnectorPublisherConfiguration)
     {
-        serviceCollection.AddSingleton(mqttReconnectConfiguration);
-
         serviceCollection.AddSingleton<MqttClientOptions>(_ =>
             new MqttClientOptionsBuilder()
                 .WithTcpServer(mqttServerConfiguration.Host, mqttServerConfiguration.Port)
