@@ -39,7 +39,6 @@ The easiest way to run SBM Fizikus to MQTT is using Docker.
 **Setup:**
 1. Create a `docker-compose.yml` file (see example below)
 2. Run `docker-compose up -d`
-3. Wait 2 minutes until the first polling.
 
 ## Configuration
 
@@ -177,6 +176,12 @@ Test projects include:
 - `SbmFizikusToMqtt.MqttConnector.Tests/`
 - `SbmFizikusToMqtt.HomeAssistantAutoDiscovery.Tests/`
 
+## Continuous Integration
+
+- A `dotnet format` check runs on pull requests to enforce repository formatting
+- Dependabot opens weekly dependency update pull requests for NuGet and GitHub Actions
+- Published Docker images are scanned with Trivy for vulnerabilities
+
 ## Troubleshooting
 
 ### Connection Issues
@@ -187,7 +192,7 @@ Test projects include:
 
 ### Missing Data
 - Check MQTT broker for message publication
-- Review application logs for errors
+- Review application logs for errors — SBM API failures include the response body from the API in the log message
 
 ### Home Assistant Not Discovering Devices
 - Enable discovery flags

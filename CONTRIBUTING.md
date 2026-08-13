@@ -35,19 +35,13 @@ dotnet test
 ```
 
 4. Tools and formatting
-- Restore local .NET tools (the repository includes a tool manifest to pin versions):
+- Formatting uses `dotnet format`, which ships with the .NET SDK (no local tool restore is needed). Check formatting with:
 
 ```
-dotnet tool restore
+dotnet format src/SbmFizikusToMqtt.slnx --verify-no-changes
 ```
 
-- Check formatting with the pinned `dotnet-format` tool:
-
-```
-dotnet tool run dotnet-format --verify-no-changes
-```
-
-If the check reports formatting issues, run `dotnet tool run dotnet-format` to apply fixes locally.
+If the check reports formatting issues, run `dotnet format src/SbmFizikusToMqtt.slnx` to apply fixes locally.
 
 ## Branching & pull requests
 - Branch names: `feature/<short-description>`, `fix/<short-description>`, or `chore/<short-description>`.

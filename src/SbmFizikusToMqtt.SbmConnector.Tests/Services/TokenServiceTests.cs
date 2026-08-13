@@ -160,18 +160,27 @@ public class TokenServiceTests
     }
 
     [Fact]
-    public async Task GetToken_TokenExpiresExactlyAtCurrentTime_StillUsesToken()
+    public async Task GetToken_TokenExpiresWithinSafetyMargin_RetrievesNewToken()
     {
         // Arrange
-        // Note: The HasValidToken logic uses < (strictly less than), not <=
-        // So a token that expires exactly at current time is still considered valid
+        // Note: HasValidToken treats a token expiring within TokenExpirySafetyMarginSeconds (30s)
+        // as expired, so it is refreshed before the boundary is reached
         var currentTime = new DateTimeOffset(2026, 2, 15, 11, 0, 0, TimeSpan.Zero);
 
-        var token = new SbmTokenResponse
+        var firstToken = new SbmTokenResponse
         {
             AccessToken = "expiring-token",
-            Expiration = currentTime, // Expires exactly at current time
+            Expiration = currentTime.AddSeconds(10), // Expires within the 30s safety margin
             RefreshToken = "refresh-1",
+            RefreshTokenExpiration = currentTime.AddDays(7),
+            Rights = new List<string> { "read" }
+        };
+
+        var secondToken = new SbmTokenResponse
+        {
+            AccessToken = "fresh-token",
+            Expiration = currentTime.AddHours(1),
+            RefreshToken = "refresh-2",
             RefreshTokenExpiration = currentTime.AddDays(7),
             Rights = new List<string> { "read" }
         };
@@ -179,19 +188,24 @@ public class TokenServiceTests
         _timeProviderMock.Setup(x => x.GetUtcNow()).Returns(currentTime);
         _sbmServiceMock
             .Setup(x => x.GetToken(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(token);
+            .ReturnsAsync(firstToken);
 
         // Act
         var firstResult = await _tokenService.GetToken();
+
+        _sbmServiceMock
+            .Setup(x => x.GetToken(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(secondToken);
+
         var secondResult = await _tokenService.GetToken();
 
-        // Assert - Token should still be used (not considered expired when equal)
-        Assert.Equal("expiring-token", firstResult.AccessToken);
-        Assert.Same(firstResult, secondResult);
+        // Assert - Token within the safety margin should be refreshed
+        Assert.Equal("fresh-token", secondResult.AccessToken);
+        Assert.NotSame(firstResult, secondResult);
 
         _sbmServiceMock.Verify(
             x => x.GetToken(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
-            Times.Once);
+            Times.Exactly(2));
     }
 
     [Fact]
@@ -308,15 +322,24 @@ public class TokenServiceTests
     }
 
     [Fact]
-    public async Task GetToken_TokenAboutToExpire_StillUsesToken()
+    public async Task GetToken_TokenAboutToExpire_RetrievesNewToken()
     {
         // Arrange
         var currentTime = new DateTimeOffset(2026, 2, 15, 10, 59, 59, TimeSpan.Zero);
-        var token = new SbmTokenResponse
+        var firstToken = new SbmTokenResponse
         {
             AccessToken = "about-to-expire-token",
-            Expiration = new DateTimeOffset(2026, 2, 15, 11, 0, 0, TimeSpan.Zero), // Expires in 1 second
+            Expiration = new DateTimeOffset(2026, 2, 15, 11, 0, 0, TimeSpan.Zero), // Expires in 1 second (inside the safety margin)
             RefreshToken = "refresh-token",
+            RefreshTokenExpiration = currentTime.AddDays(7),
+            Rights = new List<string> { "read" }
+        };
+
+        var secondToken = new SbmTokenResponse
+        {
+            AccessToken = "fresh-token",
+            Expiration = currentTime.AddHours(1),
+            RefreshToken = "refresh-token-2",
             RefreshTokenExpiration = currentTime.AddDays(7),
             Rights = new List<string> { "read" }
         };
@@ -324,19 +347,24 @@ public class TokenServiceTests
         _timeProviderMock.Setup(x => x.GetUtcNow()).Returns(currentTime);
         _sbmServiceMock
             .Setup(x => x.GetToken(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(token);
+            .ReturnsAsync(firstToken);
 
         // Act
         var firstResult = await _tokenService.GetToken();
+
+        _sbmServiceMock
+            .Setup(x => x.GetToken(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(secondToken);
+
         var secondResult = await _tokenService.GetToken();
 
-        // Assert - Token should still be used as it hasn't expired yet
-        Assert.Equal("about-to-expire-token", firstResult.AccessToken);
-        Assert.Same(firstResult, secondResult);
+        // Assert - Token expiring within the safety margin should be refreshed
+        Assert.Equal("fresh-token", secondResult.AccessToken);
+        Assert.NotSame(firstResult, secondResult);
 
         _sbmServiceMock.Verify(
             x => x.GetToken(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
-            Times.Once);
+            Times.Exactly(2));
     }
 
     [Fact]

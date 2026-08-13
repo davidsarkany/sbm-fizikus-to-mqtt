@@ -15,6 +15,7 @@ public static class IServiceCollectionExtension
             var config = serviceProvider.GetRequiredService<IOptions<SbmConfiguration>>().Value;
             client.BaseAddress = new Uri(config.BaseUrl);
             client.DefaultRequestHeaders.Add("Accept", "application/json");
+            client.Timeout = TimeSpan.FromSeconds(30);
         });
         serviceCollection.AddSingleton(TimeProvider.System);
         serviceCollection.AddSingleton<ITokenService, TokenService>();

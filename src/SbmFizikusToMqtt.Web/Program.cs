@@ -11,7 +11,6 @@ try
 {
     Log.Information("Starting server.");
     var builder = WebApplication.CreateBuilder(args);
-    builder.Configuration.AddEnvironmentVariables();
     builder.Services.AddSerilog((services, loggerConfiguration) => loggerConfiguration
         .ReadFrom.Configuration(builder.Configuration)
         .Enrich.FromLogContext());

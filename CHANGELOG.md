@@ -5,6 +5,27 @@ All notable changes to SBM Fizikus to MQTT will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-08-13
+
+### Added
+
+- Dependabot configuration for weekly NuGet and GitHub Actions dependency updates
+- SBM API client requests now use a 30-second HTTP timeout
+- SBM API errors now include the response body returned by the API in the logged exception
+
+### Changed
+
+- Access tokens now refresh when fewer than 30 seconds of validity remain, avoiding failed requests with near-expired tokens
+- MQTTnet dependency narrowed from `MQTTnet.AspNetCore` to `MQTTnet` with explicit `Microsoft.Extensions.*` package references
+- Bridge online/offline state payloads centralized in a `BridgeStatePayloads` constant class
+
+### Fixed
+
+- Trivy vulnerability scan now skipped on pull requests, where no image is pushed
+- Removed stale root-level `workflows/` directory — CI only reads `.github/workflows/`
+- Removed duplicate project COPY from the Dockerfile
+- Removed unnecessary `dotnet tool restore` step from the format workflow
+
 ## [2.0.1] - 2026-08-11
 
 ### Changed
@@ -77,6 +98,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Docker and Docker Compose deployment support
 - .NET 10 cross-platform application
 
+[2.1.0]: https://github.com/USER/sbm-fizikus-to-mqtt/compare/v2.0.1...v2.1.0
 [2.0.1]: https://github.com/USER/sbm-fizikus-to-mqtt/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/USER/sbm-fizikus-to-mqtt/compare/v1.1.0...v2.0.0
 [1.1.0]: https://github.com/USER/sbm-fizikus-to-mqtt/compare/v1.0.5...v1.1.0

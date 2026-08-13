@@ -87,7 +87,12 @@ internal sealed class SbmService(IHttpClientFactory httpClientFactory) : ISbmSer
             DefaultMediaType);
 
         var response = await _httpClient.PutAsync(RequestUri, content, cancellationToken);
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
+            throw new HttpRequestException(
+                $"SBM API request failed with status {(int)response.StatusCode} ({response.ReasonPhrase}): {errorBody}");
+        }
 
         var responseJson = await response.Content.ReadAsStringAsync(cancellationToken);
         try

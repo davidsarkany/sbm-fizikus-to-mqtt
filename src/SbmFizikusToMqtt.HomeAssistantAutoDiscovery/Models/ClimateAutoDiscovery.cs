@@ -21,12 +21,12 @@ internal sealed record ClimateAutoDiscovery
 
     [JsonPropertyName("current_temperature_topic")]
     public required string CurrentTemperatureTopic { get; init; }
-    
+
     [JsonPropertyName("temp_step")]
-    public required double TemperatureStep  { get; init; }    
-    
+    public required double TemperatureStep { get; init; }
+
     [JsonPropertyName("precision")]
-    public required double Precision  { get; init; }
+    public required double Precision { get; init; }
 
     [JsonPropertyName("unique_id")] public required string UniqueId { get; init; }
 

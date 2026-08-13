@@ -1,4 +1,4 @@
-using Bogus;
+﻿using Bogus;
 using Microsoft.Extensions.DependencyInjection;
 using MQTTnet;
 using SbmFizikusToMqtt.MqttConnector.Configurations;

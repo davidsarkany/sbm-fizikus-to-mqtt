@@ -79,7 +79,7 @@ internal sealed class MqttPublisher(
 
     private async Task PublishState(bool online, CancellationToken cancellationToken = default)
     {
-        var statePayload = online ? "{\"state\": \"online\"}" : "{\"state\": \"offline\"}";
+        var statePayload = online ? BridgeStatePayloads.Online : BridgeStatePayloads.Offline;
         var message = new MqttApplicationMessageBuilder()
             .WithTopic($"{mqttConnectorPublisherConfiguration.CurrentValue.SbmTopic}/bridge/state")
             .WithPayload(statePayload)

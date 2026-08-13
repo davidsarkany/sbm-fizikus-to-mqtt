@@ -10,6 +10,8 @@ internal sealed class TokenService(
     TimeProvider timeProvider,
     IOptions<SbmConfiguration> configuration) : ITokenService, IDisposable
 {
+    private const int TokenExpirySafetyMarginSeconds = 30;
+
     private readonly SbmConfiguration _configuration = configuration.Value;
     private readonly SemaphoreSlim _tokenLock = new(1, 1);
 
@@ -42,7 +44,7 @@ internal sealed class TokenService(
 
     private bool HasValidToken()
     {
-        return !(_token == null || _token.Expiration < timeProvider.GetUtcNow());
+        return _token is { } token && token.Expiration > timeProvider.GetUtcNow().AddSeconds(TokenExpirySafetyMarginSeconds);
     }
 
     public void Dispose()

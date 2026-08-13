@@ -1,4 +1,4 @@
-using SbmFizikusToMqtt.Application.Configurations;
+﻿using SbmFizikusToMqtt.Application.Configurations;
 using SbmFizikusToMqtt.Application.Extensions;
 using SbmFizikusToMqtt.HomeAssistantAutoDiscovery.Configurations;
 using SbmFizikusToMqtt.HomeAssistantAutoDiscovery.Extensions;

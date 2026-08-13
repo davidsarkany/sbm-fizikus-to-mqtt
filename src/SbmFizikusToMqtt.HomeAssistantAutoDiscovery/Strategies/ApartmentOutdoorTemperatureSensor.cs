@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using SbmFizikusToMqtt.Domain;
 using SbmFizikusToMqtt.HomeAssistantAutoDiscovery.Interfaces;
 using SbmFizikusToMqtt.HomeAssistantAutoDiscovery.Models;

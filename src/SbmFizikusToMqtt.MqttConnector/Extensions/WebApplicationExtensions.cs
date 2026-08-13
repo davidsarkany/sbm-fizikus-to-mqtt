@@ -2,6 +2,7 @@
 using MQTTnet;
 using SbmFizikusToMqtt.MqttConnector.Configurations;
 using SbmFizikusToMqtt.MqttConnector.Interfaces;
+using SbmFizikusToMqtt.MqttConnector.Models;
 using SbmFizikusToMqtt.MqttConnector.Services;
 
 namespace SbmFizikusToMqtt.MqttConnector.Extensions;
@@ -18,7 +19,7 @@ public static class WebApplicationExtensions
                 .WithCredentials(mqttServerConfiguration.Username, mqttServerConfiguration.Password)
                 .WithClientId(mqttServerConfiguration.ClientId)
                 .WithWillTopic($"{mqttConnectorPublisherConfiguration.SbmTopic}/bridge/state")
-                .WithWillPayload("{\"state\": \"offline\"}")
+                .WithWillPayload(BridgeStatePayloads.Offline)
                 .Build());
 
         serviceCollection.AddSingleton<IMqttClient>(_ => new MqttClientFactory().CreateMqttClient());

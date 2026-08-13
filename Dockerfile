@@ -11,7 +11,6 @@ COPY ["src/SbmFizikusToMqtt.Domain/SbmFizikusToMqtt.Domain.csproj", "SbmFizikusT
 COPY ["src/SbmFizikusToMqtt.Application/SbmFizikusToMqtt.Application.csproj", "SbmFizikusToMqtt.Application/"]
 COPY ["src/SbmFizikusToMqtt.MqttConnector.Domain/SbmFizikusToMqtt.MqttConnector.Domain.csproj", "SbmFizikusToMqtt.MqttConnector.Domain/"]
 COPY ["src/SbmFizikusToMqtt.MqttConnector/SbmFizikusToMqtt.MqttConnector.csproj", "SbmFizikusToMqtt.MqttConnector/"]
-COPY ["src/SbmFizikusToMqtt.MqttConnector.Domain/SbmFizikusToMqtt.MqttConnector.Domain.csproj", "SbmFizikusToMqtt.MqttConnector.Domain/"]
 COPY ["src/SbmFizikusToMqtt.SbmConnector/SbmFizikusToMqtt.SbmConnector.csproj", "SbmFizikusToMqtt.SbmConnector/"]
 RUN dotnet restore "SbmFizikusToMqtt.Web/SbmFizikusToMqtt.Web.csproj"
 COPY src .

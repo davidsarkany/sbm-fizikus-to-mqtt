@@ -109,8 +109,9 @@ jobs:
           provenance: true
           sbom: true
 
-      # Run Trivy vulnerability scanner
+      # Run Trivy vulnerability scanner (no image is pushed on PRs, so skip there)
       - name: Run Trivy vulnerability scanner
+        if: github.event_name != 'pull_request'
         uses: aquasecurity/trivy-action@v0.35.0
         with:
           image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build-and-push.outputs.digest }}
