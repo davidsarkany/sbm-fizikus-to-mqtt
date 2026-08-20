@@ -16,6 +16,7 @@ namespace SbmFizikusToMqtt.Application.BackgroundJobs;
 ///     Background service that listens for MQTT messages to control thermostat temperatures.
 /// </summary>
 internal sealed class MqttListener(
+    IMqttConnection mqttConnection,
     IMqttClient mqttClient,
     IApartmentService apartmentService,
     IMqttPublisher publisher,
@@ -38,10 +39,8 @@ internal sealed class MqttListener(
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken, _cts.Token);
         var cancellationToken = linkedCts.Token;
 
-        // Wait for the MQTT client to be connected before subscribing
-        await WaitForMqttConnectionAsync(cancellationToken);
-
-        if (cancellationToken.IsCancellationRequested) return;
+        // Wait for the MQTT connection to be established before subscribing
+        await mqttConnection.WaitUntilConnectedAsync(cancellationToken);
 
         var subscribeTopic = BuildSubscribeTopic();
 
@@ -64,15 +63,6 @@ internal sealed class MqttListener(
         _cts.Cancel();
         _cts.Dispose();
         base.Dispose();
-    }
-
-    private async Task WaitForMqttConnectionAsync(CancellationToken cancellationToken)
-    {
-        while (!mqttClient.IsConnected && !cancellationToken.IsCancellationRequested)
-        {
-            logger.LogDebug("Waiting for MQTT client to connect...");
-            await Task.Delay(100, cancellationToken);
-        }
     }
 
     private string BuildSubscribeTopic()

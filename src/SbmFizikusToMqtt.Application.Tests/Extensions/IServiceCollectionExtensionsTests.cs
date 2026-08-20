@@ -6,7 +6,9 @@ using Microsoft.Extensions.Options;
 using Moq;
 using MQTTnet;
 using SbmFizikusToMqtt.Application.BackgroundJobs;
+using SbmFizikusToMqtt.Application.Configurations;
 using SbmFizikusToMqtt.Application.Extensions;
+using SbmFizikusToMqtt.Application.ScheduledJobs;
 using SbmFizikusToMqtt.HomeAssistantAutoDiscovery.Configurations;
 using SbmFizikusToMqtt.MqttConnector.Configurations;
 using SbmFizikusToMqtt.MqttConnector.Interfaces;
@@ -93,51 +95,75 @@ public sealed class IServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddSbmPollingAsync_WithValidCronExpression_ReturnsServiceCollection()
+    public void AddSbmPollingBackgroundService_WithValidInterval_RegistersHostedService()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        RegisterCommonDependencies(services);
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                { "SbmConnector:PollingIntervalSeconds", "120" }
+            })
+            .Build();
+
+        // Act
+        services.AddSbmPollingBackgroundService(configuration);
+        var serviceProvider = services.BuildServiceProvider();
+
+        // Assert
+        var hostedServices = serviceProvider.GetServices<IHostedService>();
+        Assert.Contains(hostedServices, s => s is SbmPollingBackgroundService);
+    }
+
+    [Fact]
+    public void AddSbmPollingBackgroundService_WithValidInterval_ReturnsServiceCollection()
     {
         // Arrange
         var services = new ServiceCollection();
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                { "SbmConnector:PollingCronExpression", "*/5 * * * *" }
+                { "SbmConnector:PollingIntervalSeconds", "120" }
             })
             .Build();
 
         // Act
-        var result = services.AddSbmPollingAsync(configuration);
+        var result = services.AddSbmPollingBackgroundService(configuration);
 
         // Assert
         Assert.Same(services, result);
     }
 
     [Fact]
-    public void AddSbmPollingAsync_MissingConfiguration_ThrowsInvalidOperationException()
+    public void AddSbmPollingBackgroundService_MissingConfiguration_ThrowsInvalidOperationException()
     {
         // Arrange
         var services = new ServiceCollection();
         var configuration = new ConfigurationBuilder().Build();
 
         // Act & Assert
-        var ex = Assert.Throws<InvalidOperationException>(() => services.AddSbmPollingAsync(configuration));
-        Assert.Contains("SbmConnector:PollingCronExpression", ex.Message);
+        var ex = Assert.Throws<InvalidOperationException>(() => services.AddSbmPollingBackgroundService(configuration));
+        Assert.Contains("SbmConnector:PollingIntervalSeconds", ex.Message);
     }
 
-    [Fact]
-    public void AddSbmPollingAsync_NullCronExpression_ThrowsInvalidOperationException()
+    [Theory]
+    [InlineData("0")]
+    [InlineData("-120")]
+    public void AddSbmPollingBackgroundService_InvalidInterval_ThrowsInvalidOperationException(string interval)
     {
         // Arrange
         var services = new ServiceCollection();
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                { "SbmConnector:PollingCronExpression", null! }
+                { "SbmConnector:PollingIntervalSeconds", interval }
             })
             .Build();
 
         // Act & Assert
-        var ex = Assert.Throws<InvalidOperationException>(() => services.AddSbmPollingAsync(configuration));
-        Assert.Contains("SbmConnector:PollingCronExpression", ex.Message);
+        var ex = Assert.Throws<InvalidOperationException>(() => services.AddSbmPollingBackgroundService(configuration));
+        Assert.Contains("SbmConnector:PollingIntervalSeconds", ex.Message);
     }
 
     private static void RegisterCommonDependencies(IServiceCollection services)
@@ -161,11 +187,16 @@ public sealed class IServiceCollectionExtensionsTests
         });
 
         services.AddSingleton(new Mock<IMqttClient>().Object);
+        services.AddSingleton(new Mock<IMqttConnection>().Object);
         services.AddSingleton(new Mock<IApartmentService>().Object);
         services.AddSingleton(new Mock<IMqttPublisher>().Object);
         services.AddSingleton(mqttConnectorPublisherConfigurationMock.Object);
         services.AddSingleton(homeAssistantAutoDiscoveryConfigurationMock.Object);
+        services.AddSingleton(TimeProvider.System);
+        services.AddSingleton<IOptions<PollingConfiguration>>(
+            Options.Create(new PollingConfiguration { PollingIntervalSeconds = 120 }));
         services.AddSingleton(new Mock<ILogger<MqttListener>>().Object);
         services.AddSingleton(new Mock<ILogger<InitialSbmPollingJob>>().Object);
+        services.AddSingleton(new Mock<ILogger<SbmPollingBackgroundService>>().Object);
     }
 }

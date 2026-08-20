@@ -25,6 +25,7 @@ public sealed class MqttListenerTests
     private readonly MqttConnectorPublisherConfiguration _configuration;
     private readonly HomeAssistantAutoDiscoveryConfiguration _homeAssistantConfiguration;
     private readonly Mock<ILogger<MqttListener>> _loggerMock;
+    private readonly Mock<IMqttConnection> _mqttConnectionMock;
     private readonly Mock<IMqttClient> _mqttClientMock;
     private readonly Mock<IOptionsMonitor<MqttConnectorPublisherConfiguration>> _optionsMonitorMock;
     private readonly Mock<IMqttPublisher> _publisherMock;
@@ -32,6 +33,11 @@ public sealed class MqttListenerTests
 
     public MqttListenerTests()
     {
+        _mqttConnectionMock = new Mock<IMqttConnection>();
+        _mqttConnectionMock
+            .Setup(x => x.WaitUntilConnectedAsync(It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
         _mqttClientMock = new Mock<IMqttClient>();
         _mqttClientMock.SetupAdd(x =>
             x.ApplicationMessageReceivedAsync += It.IsAny<Func<MqttApplicationMessageReceivedEventArgs, Task>>());
@@ -65,7 +71,6 @@ public sealed class MqttListenerTests
 
         _optionsMonitorMock.Setup(x => x.CurrentValue).Returns(_configuration);
         _homeAssistantOptionsMonitorMock.Setup(x => x.CurrentValue).Returns(_homeAssistantConfiguration);
-        _mqttClientMock.Setup(x => x.IsConnected).Returns(true);
 
         // Enable all log levels so that logger.IsEnabled() returns true and logs are actually made
         _loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
@@ -512,6 +517,7 @@ public sealed class MqttListenerTests
     private MqttListener CreateMqttListener()
     {
         return new MqttListener(
+            _mqttConnectionMock.Object,
             _mqttClientMock.Object,
             _apartmentServiceMock.Object,
             _publisherMock.Object,

@@ -1,13 +1,12 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using MQTTnet;
 using SbmFizikusToMqtt.MqttConnector.Interfaces;
 using SbmFizikusToMqtt.SbmConnector.Interfaces;
 
 namespace SbmFizikusToMqtt.Application.BackgroundJobs;
 
 internal sealed class InitialSbmPollingJob(
-    IMqttClient mqttClient,
+    IMqttConnection mqttConnection,
     IApartmentService apartmentService,
     IMqttPublisher publisher,
     ILogger<InitialSbmPollingJob> logger)
@@ -15,14 +14,8 @@ internal sealed class InitialSbmPollingJob(
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        // Wait for the MQTT client to be connected before publishing
-        while (!mqttClient.IsConnected && !stoppingToken.IsCancellationRequested)
-        {
-            logger.LogDebug("Waiting for MQTT client to connect before initial polling...");
-            await Task.Delay(100, stoppingToken);
-        }
-
-        if (stoppingToken.IsCancellationRequested) return;
+        // Wait for the MQTT connection to be established before publishing
+        await mqttConnection.WaitUntilConnectedAsync(stoppingToken);
 
         try
         {

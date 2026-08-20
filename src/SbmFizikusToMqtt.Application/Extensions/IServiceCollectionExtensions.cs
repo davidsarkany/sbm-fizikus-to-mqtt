@@ -2,7 +2,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using SbmFizikusToMqtt.Application.BackgroundJobs;
 using SbmFizikusToMqtt.Application.ScheduledJobs;
-using TickerQ.DependencyInjection;
 
 namespace SbmFizikusToMqtt.Application.Extensions;
 
@@ -18,16 +17,14 @@ public static class ServiceCollectionExtensions
         return services.AddHostedService<InitialSbmPollingJob>();
     }
 
-    public static IServiceCollection AddSbmPollingAsync(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddSbmPollingBackgroundService(this IServiceCollection services, IConfiguration configuration)
     {
-
-        var pollingCronExpression = configuration.GetSection("SbmConnector:PollingCronExpression").Get<string>();
-        if (pollingCronExpression == null)
+        var pollingIntervalSeconds = configuration.GetSection("SbmConnector:PollingIntervalSeconds").Get<int?>();
+        if (pollingIntervalSeconds is not > 0)
         {
-            throw new InvalidOperationException("Missing configuration: SbmConnector:PollingCronExpression");
+            throw new InvalidOperationException("Missing or invalid configuration: SbmConnector:PollingIntervalSeconds");
         }
 
-        services.MapTicker<SbmPollingJob>().WithCron(pollingCronExpression);
-        return services;
+        return services.AddHostedService<SbmPollingBackgroundService>();
     }
 }

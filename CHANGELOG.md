@@ -5,6 +5,26 @@ All notable changes to SBM Fizikus to MQTT will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.2] - 2026-08-20
+
+### Changed
+
+- Replaced the TickerQ job scheduler with a `PeriodicTimer`-based background service (`SbmPollingBackgroundService`), eliminating constant idle CPU usage from scheduler polling
+- `SbmConnector:PollingCronExpression` configuration replaced by `SbmConnector:PollingIntervalSeconds` (seconds between SBM polls)
+- MQTT connection wait loops now use `PeriodicTimer` instead of `Task.Delay` polling
+- MQTT connection waiting centralized in `MqttConnectionService` (`IMqttConnection.WaitUntilConnectedAsync`); background services no longer poll `IsConnected`
+
+### Removed
+
+- TickerQ dependency from the application, web, and test projects
+
+## [2.1.1] - 2026-08-18
+
+### Changed
+
+- GitHub Actions dependency upgrades: actions/checkout v6 → v7, actions/setup-dotnet v5 → v6, docker/setup-buildx-action 4.0.0 → 4.2.0, docker/login-action 4.0.0 → 4.6.0, docker/metadata-action 6.0.0 → 6.2.0, docker/build-push-action 7.0.0 → 7.3.0, aquasecurity/trivy-action 0.35.0 → 0.36.0, sigstore/cosign-installer 4.1.1 → 4.1.2
+- Test project dependency upgrades: Microsoft.NET.Test.Sdk 18.8.1 → 18.9.0, xunit.runner.visualstudio 3.1.5 → 4.0.0
+
 ## [2.1.0] - 2026-08-13
 
 ### Added

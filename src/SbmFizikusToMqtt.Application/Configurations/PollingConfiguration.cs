@@ -4,5 +4,5 @@ namespace SbmFizikusToMqtt.Application.Configurations;
 
 public sealed record PollingConfiguration
 {
-    [Required] public required string PollingCronExpression { get; init; }
+    [Range(1, int.MaxValue)] public int PollingIntervalSeconds { get; init; }
 }

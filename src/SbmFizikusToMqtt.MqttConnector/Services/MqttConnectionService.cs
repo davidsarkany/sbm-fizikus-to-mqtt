@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MQTTnet;
+using SbmFizikusToMqtt.MqttConnector.Interfaces;
 
 namespace SbmFizikusToMqtt.MqttConnector.Services;
 
@@ -8,8 +9,11 @@ internal sealed class MqttConnectionService(
     IMqttClient mqttClient,
     MqttClientOptions mqttClientOptions,
     IHostApplicationLifetime hostApplicationLifetime,
-    ILogger<MqttConnectionService> logger) : IHostedService
+    ILogger<MqttConnectionService> logger) : IHostedService, IMqttConnection
 {
+    private readonly TaskCompletionSource _connectionEstablished =
+        new(TaskCreationOptions.RunContinuationsAsynchronously);
+
     private bool _isGracefulDisconnect;
 
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -21,6 +25,13 @@ internal sealed class MqttConnectionService(
         logger.LogInformation("Connecting to MQTT broker...");
         await mqttClient.ConnectAsync(mqttClientOptions, cancellationToken);
         logger.LogInformation("Successfully connected to MQTT broker");
+
+        _connectionEstablished.TrySetResult();
+    }
+
+    public Task WaitUntilConnectedAsync(CancellationToken cancellationToken = default)
+    {
+        return _connectionEstablished.Task.WaitAsync(cancellationToken);
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)

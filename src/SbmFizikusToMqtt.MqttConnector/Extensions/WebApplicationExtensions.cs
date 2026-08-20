@@ -24,7 +24,9 @@ public static class WebApplicationExtensions
 
         serviceCollection.AddSingleton<IMqttClient>(_ => new MqttClientFactory().CreateMqttClient());
 
-        serviceCollection.AddHostedService<MqttConnectionService>();
+        serviceCollection.AddSingleton<MqttConnectionService>();
+        serviceCollection.AddSingleton<IMqttConnection>(serviceProvider => serviceProvider.GetRequiredService<MqttConnectionService>());
+        serviceCollection.AddHostedService(serviceProvider => serviceProvider.GetRequiredService<MqttConnectionService>());
         serviceCollection.AddSingleton<IMqttPublisher, MqttPublisher>();
         return serviceCollection;
     }

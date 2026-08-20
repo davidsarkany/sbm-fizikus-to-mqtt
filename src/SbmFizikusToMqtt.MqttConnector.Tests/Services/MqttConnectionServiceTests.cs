@@ -91,6 +91,58 @@ public sealed class MqttConnectionServiceTests
     }
 
     [Fact]
+    public async Task WaitUntilConnectedAsync_AfterStartAsync_CompletesImmediately()
+    {
+        // Arrange
+        var sut = CreateSut();
+
+        _mqttClientMock
+            .Setup(x => x.ConnectAsync(It.IsAny<MqttClientOptions>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new MqttClientConnectResult());
+
+        await sut.StartAsync(CancellationToken.None);
+
+        // Act
+        var waitTask = sut.WaitUntilConnectedAsync(CancellationToken.None);
+
+        // Assert
+        Assert.True(waitTask.IsCompletedSuccessfully);
+        await waitTask;
+    }
+
+    [Fact]
+    public async Task WaitUntilConnectedAsync_BeforeStartAsync_WaitsUntilConnectionIsEstablished()
+    {
+        // Arrange
+        var sut = CreateSut();
+
+        _mqttClientMock
+            .Setup(x => x.ConnectAsync(It.IsAny<MqttClientOptions>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new MqttClientConnectResult());
+
+        // Act
+        var waitTask = sut.WaitUntilConnectedAsync(CancellationToken.None);
+
+        Assert.False(waitTask.IsCompleted);
+
+        await sut.StartAsync(CancellationToken.None);
+        await waitTask;
+    }
+
+    [Fact]
+    public async Task WaitUntilConnectedAsync_Cancelled_ThrowsOperationCanceledException()
+    {
+        // Arrange
+        var sut = CreateSut();
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        // Act & Assert
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            sut.WaitUntilConnectedAsync(cts.Token));
+    }
+
+    [Fact]
     public async Task StopAsync_WhenConnected_DisconnectsFromBroker()
     {
         // Arrange

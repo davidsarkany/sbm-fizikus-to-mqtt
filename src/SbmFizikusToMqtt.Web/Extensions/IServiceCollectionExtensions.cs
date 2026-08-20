@@ -6,7 +6,6 @@ using SbmFizikusToMqtt.MqttConnector.Configurations;
 using SbmFizikusToMqtt.MqttConnector.Extensions;
 using SbmFizikusToMqtt.SbmConnector.Configurations;
 using SbmFizikusToMqtt.SbmConnector.Extensions;
-using TickerQ.DependencyInjection;
 
 namespace SbmFizikusToMqtt.Web.Extensions;
 
@@ -67,13 +66,6 @@ public static class ServiceCollectionExtensions
             services.ConfigureMqttPublisher(mqttServerConfig, publisherConfig);
             services.AddMqttListenerBackgroundService();
             services.AddInitialSbmPollingJob();
-
-            return services;
-        }
-
-        public IServiceCollection AddTickerQServices()
-        {
-            services.AddTickerQ(options => { options.ConfigureScheduler(scheduler => scheduler.MaxConcurrency = 2); });
 
             return services;
         }

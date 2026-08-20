@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
-using MQTTnet;
 using SbmFizikusToMqtt.Application.BackgroundJobs;
 using SbmFizikusToMqtt.Application.Tests.Fakers;
 using SbmFizikusToMqtt.Domain;
@@ -16,17 +15,19 @@ public sealed class InitialSbmPollingJobTests
 
     private readonly Mock<IApartmentService> _apartmentServiceMock;
     private readonly Mock<ILogger<InitialSbmPollingJob>> _loggerMock;
-    private readonly Mock<IMqttClient> _mqttClientMock;
+    private readonly Mock<IMqttConnection> _mqttConnectionMock;
     private readonly Mock<IMqttPublisher> _publisherMock;
 
     public InitialSbmPollingJobTests()
     {
-        _mqttClientMock = new Mock<IMqttClient>();
+        _mqttConnectionMock = new Mock<IMqttConnection>();
         _apartmentServiceMock = new Mock<IApartmentService>();
         _publisherMock = new Mock<IMqttPublisher>();
         _loggerMock = new Mock<ILogger<InitialSbmPollingJob>>();
 
-        _mqttClientMock.Setup(x => x.IsConnected).Returns(true);
+        _mqttConnectionMock
+            .Setup(x => x.WaitUntilConnectedAsync(It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
         _loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
     }
 
@@ -49,6 +50,7 @@ public sealed class InitialSbmPollingJobTests
         await InvokeExecuteAsync(sut, CancellationToken.None);
 
         // Assert
+        _mqttConnectionMock.Verify(x => x.WaitUntilConnectedAsync(It.IsAny<CancellationToken>()), Times.Once);
         _apartmentServiceMock.Verify(x => x.GetApartmentInfo(It.IsAny<CancellationToken>()), Times.Once);
         _publisherMock.Verify(x => x.Publish(apartment, It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -57,13 +59,9 @@ public sealed class InitialSbmPollingJobTests
     public async Task ExecuteAsync_MqttNotConnectedInitially_WaitsForConnection()
     {
         // Arrange
-        var callCount = 0;
-        _mqttClientMock.Setup(x => x.IsConnected)
-            .Returns(() =>
-            {
-                callCount++;
-                return callCount > 3;
-            });
+        _mqttConnectionMock
+            .Setup(x => x.WaitUntilConnectedAsync(It.IsAny<CancellationToken>()))
+            .Returns(async (CancellationToken _) => await Task.Delay(50));
 
         var apartment = ApartmentFakers.ApartmentFaker.Generate();
         _apartmentServiceMock
@@ -87,7 +85,9 @@ public sealed class InitialSbmPollingJobTests
     public async Task ExecuteAsync_CancelledWhileWaitingForConnection_DoesNotFetchOrPublish()
     {
         // Arrange
-        _mqttClientMock.Setup(x => x.IsConnected).Returns(false);
+        _mqttConnectionMock
+            .Setup(x => x.WaitUntilConnectedAsync(It.IsAny<CancellationToken>()))
+            .Returns((CancellationToken ct) => Task.Delay(Timeout.Infinite, ct));
 
         var sut = CreateJob();
         var cts = new CancellationTokenSource();
@@ -100,9 +100,9 @@ public sealed class InitialSbmPollingJobTests
         {
             await InvokeExecuteAsync(sut, cts.Token);
         }
-        catch (TaskCanceledException)
+        catch (OperationCanceledException)
         {
-            // Expected - Task.Delay throws when cancelled
+            // Expected - PeriodicTimer.WaitForNextTickAsync throws when cancelled
         }
 
         // Assert
@@ -244,7 +244,7 @@ public sealed class InitialSbmPollingJobTests
     private InitialSbmPollingJob CreateJob()
     {
         return new InitialSbmPollingJob(
-            _mqttClientMock.Object,
+            _mqttConnectionMock.Object,
             _apartmentServiceMock.Object,
             _publisherMock.Object,
             _loggerMock.Object);

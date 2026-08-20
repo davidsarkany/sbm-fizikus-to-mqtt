@@ -122,7 +122,7 @@ docker-compose up -d
 
 - **.NET**: 10.0
 - **MQTT**: MQTTnet for message broker communication
-- **Job Scheduling**: TickerQ for background job management
+- **Job Scheduling**: `PeriodicTimer`-based hosted services for background jobs
 - **Testing**: XUnit with comprehensive test coverage
 
 ## Project Structure

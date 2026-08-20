@@ -1,7 +1,6 @@
 ﻿using SbmFizikusToMqtt.Application.Extensions;
 using SbmFizikusToMqtt.Web.Extensions;
 using Serilog;
-using TickerQ.DependencyInjection;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -18,12 +17,10 @@ try
     builder.Services
         .AddApplicationConfigurations(builder.Configuration)
         .AddApplicationServices(builder.Configuration)
-        .AddTickerQServices()
-        .AddSbmPollingAsync(builder.Configuration);
+        .AddSbmPollingBackgroundService(builder.Configuration);
 
     var app = builder.Build();
 
-    app.UseTickerQ();
     await app.RunAsync();
 }
 catch (Exception ex)
