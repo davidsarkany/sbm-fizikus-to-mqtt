@@ -9,6 +9,7 @@ using Moq;
 using MQTTnet;
 using MQTTnet.Protocol;
 using SbmFizikusToMqtt.Application.BackgroundJobs;
+using SbmFizikusToMqtt.Application.Services;
 using SbmFizikusToMqtt.Application.Tests.Fakers;
 using SbmFizikusToMqtt.Domain;
 using SbmFizikusToMqtt.HomeAssistantAutoDiscovery.Configurations;
@@ -27,6 +28,7 @@ public sealed class MqttListenerTests
     private readonly Mock<ILogger<MqttListener>> _loggerMock;
     private readonly Mock<IMqttConnection> _mqttConnectionMock;
     private readonly Mock<IMqttClient> _mqttClientMock;
+    private readonly Mock<IAutoDiscoveryPublicationState> _autoDiscoveryPublicationStateMock = new();
     private readonly Mock<IOptionsMonitor<MqttConnectorPublisherConfiguration>> _optionsMonitorMock;
     private readonly Mock<IMqttPublisher> _publisherMock;
     private readonly Mock<IOptionsMonitor<HomeAssistantAutoDiscoveryConfiguration>> _homeAssistantOptionsMonitorMock;
@@ -514,6 +516,68 @@ public sealed class MqttListenerTests
             Times.Once);
     }
 
+    [Fact]
+    public async Task HandleMessageReceived_HomeAssistantOnline_PublishesAndMarksDiscovery()
+    {
+        // Arrange
+        var sut = CreateMqttListener();
+        var apartment = ApartmentFakers.ApartmentFaker.Generate();
+        _apartmentServiceMock
+            .Setup(x => x.GetApartmentInfo(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(apartment);
+
+        var message = new MqttApplicationMessageBuilder()
+            .WithTopic("homeassistant/status")
+            .WithPayload("online")
+            .Build();
+
+        var args = CreateMessageEventArgs("client1", message);
+
+        // Act
+        await InvokeHandleMessageReceived(sut, args);
+
+        // Assert
+        _publisherMock.Verify(x => x.Publish(apartment, It.IsAny<CancellationToken>()), Times.Once);
+        _publisherMock.Verify(
+            x => x.PublishHomeAssistantAutoDiscovery(apartment, It.IsAny<CancellationToken>()),
+            Times.Once);
+        _autoDiscoveryPublicationStateMock.Verify(x => x.MarkDiscoveryPublished(), Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleMessageReceived_HomeAssistantOnlineWhenSbmUnavailable_DoesNotMarkDiscovery()
+    {
+        // Arrange
+        var sut = CreateMqttListener();
+        _apartmentServiceMock
+            .Setup(x => x.GetApartmentInfo(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new HttpRequestException("Resource temporarily unavailable"));
+
+        var message = new MqttApplicationMessageBuilder()
+            .WithTopic("homeassistant/status")
+            .WithPayload("online")
+            .Build();
+
+        var args = CreateMessageEventArgs("client1", message);
+
+        // Act
+        await InvokeHandleMessageReceived(sut, args);
+
+        // Assert
+        _autoDiscoveryPublicationStateMock.Verify(x => x.MarkDiscoveryPublished(), Times.Never);
+        _publisherMock.Verify(
+            x => x.PublishHomeAssistantAutoDiscovery(It.IsAny<Apartment>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+        _loggerMock.Verify(
+            x => x.Log(
+                LogLevel.Error,
+                It.IsAny<EventId>(),
+                It.IsAny<It.IsAnyType>(),
+                It.IsAny<HttpRequestException>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+    }
+
     private MqttListener CreateMqttListener()
     {
         return new MqttListener(
@@ -521,6 +585,7 @@ public sealed class MqttListenerTests
             _mqttClientMock.Object,
             _apartmentServiceMock.Object,
             _publisherMock.Object,
+            _autoDiscoveryPublicationStateMock.Object,
             _optionsMonitorMock.Object,
             _homeAssistantOptionsMonitorMock.Object,
             _loggerMock.Object);

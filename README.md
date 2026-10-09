@@ -198,4 +198,5 @@ Test projects include:
 - Enable discovery flags
 - Verify MQTT integration is configured in Home Assistant
 - Check Home Assistant logs for discovery messages
-- Discovery messages are re-published on every application restart, so restarting the container will re-register all entities
+- Discovery messages are re-published on every application restart and when Home Assistant reports `online`; they are retained, so Home Assistant restores the entities after its own restart
+- If the SBM API was unavailable while discovery was published, the polling background service retries it on the next successful poll, so entities appear within one polling interval (`SbmConnector:PollingIntervalSeconds`)

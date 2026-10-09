@@ -6,6 +6,7 @@ using Microsoft.Extensions.Time.Testing;
 using Moq;
 using SbmFizikusToMqtt.Application.Configurations;
 using SbmFizikusToMqtt.Application.ScheduledJobs;
+using SbmFizikusToMqtt.Application.Services;
 using SbmFizikusToMqtt.Application.Tests.Fakers;
 using SbmFizikusToMqtt.Domain;
 using SbmFizikusToMqtt.MqttConnector.Interfaces;
@@ -16,6 +17,7 @@ namespace SbmFizikusToMqtt.Application.Tests.ScheduledJobs;
 public sealed class SbmPollingBackgroundServiceTests
 {
     private readonly Mock<IApartmentService> _apartmentServiceMock;
+    private readonly AutoDiscoveryPublicationState _autoDiscoveryPublicationState = new();
     private readonly Mock<ILogger<SbmPollingBackgroundService>> _loggerMock;
     private readonly Mock<IMqttPublisher> _publisherMock;
     private readonly FakeTimeProvider _timeProvider = new();
@@ -49,6 +51,70 @@ public sealed class SbmPollingBackgroundServiceTests
         // Assert
         _apartmentServiceMock.Verify(x => x.GetApartmentInfo(It.IsAny<CancellationToken>()), Times.Once);
         _publisherMock.Verify(x => x.Publish(apartment, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task PollOnceAsync_DiscoveryNotYetPublished_PublishesAndMarksDiscovery()
+    {
+        // Arrange
+        var apartment = ApartmentFakers.ApartmentFaker.Generate();
+        _apartmentServiceMock
+            .Setup(x => x.GetApartmentInfo(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(apartment);
+
+        var sut = CreateService();
+
+        // Act
+        await sut.PollOnceAsync(CancellationToken.None);
+
+        // Assert
+        _publisherMock.Verify(
+            x => x.PublishHomeAssistantAutoDiscovery(apartment, It.IsAny<CancellationToken>()),
+            Times.Once);
+        Assert.True(_autoDiscoveryPublicationState.HasPublishedDiscovery);
+    }
+
+    [Fact]
+    public async Task PollOnceAsync_DiscoveryAlreadyPublished_DoesNotPublishDiscovery()
+    {
+        // Arrange
+        var apartment = ApartmentFakers.ApartmentFaker.Generate();
+        _apartmentServiceMock
+            .Setup(x => x.GetApartmentInfo(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(apartment);
+        _autoDiscoveryPublicationState.MarkDiscoveryPublished();
+
+        var sut = CreateService();
+
+        // Act
+        await sut.PollOnceAsync(CancellationToken.None);
+
+        // Assert
+        _publisherMock.Verify(
+            x => x.PublishHomeAssistantAutoDiscovery(It.IsAny<Apartment>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task PollOnceAsync_FirstPollFailsThenSucceeds_PublishesDiscoveryOnce()
+    {
+        // Arrange - simulates an SBM outage during startup followed by a recovery
+        var apartment = ApartmentFakers.ApartmentFaker.Generate();
+        _apartmentServiceMock
+            .SetupSequence(x => x.GetApartmentInfo(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new HttpRequestException("Network error"))
+            .ReturnsAsync(apartment);
+
+        var sut = CreateService();
+
+        // Act
+        await sut.PollOnceAsync(CancellationToken.None);
+        await sut.PollOnceAsync(CancellationToken.None);
+
+        // Assert
+        _publisherMock.Verify(
+            x => x.PublishHomeAssistantAutoDiscovery(apartment, It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
@@ -398,6 +464,7 @@ public sealed class SbmPollingBackgroundServiceTests
         return new SbmPollingBackgroundService(
             _apartmentServiceMock.Object,
             _publisherMock.Object,
+            _autoDiscoveryPublicationState,
             Options.Create(new PollingConfiguration { PollingIntervalSeconds = intervalSeconds }),
             _timeProvider,
             _loggerMock.Object);

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MQTTnet;
 using SbmFizikusToMqtt.Application.Models;
+using SbmFizikusToMqtt.Application.Services;
 using SbmFizikusToMqtt.HomeAssistantAutoDiscovery.Configurations;
 using SbmFizikusToMqtt.HomeAssistantAutoDiscovery.Interfaces;
 using SbmFizikusToMqtt.MqttConnector.Configurations;
@@ -20,6 +21,7 @@ internal sealed class MqttListener(
     IMqttClient mqttClient,
     IApartmentService apartmentService,
     IMqttPublisher publisher,
+    IAutoDiscoveryPublicationState autoDiscoveryPublicationState,
     IOptionsMonitor<MqttConnectorPublisherConfiguration> mqttConnectorPublisherConfiguration,
     IOptionsMonitor<HomeAssistantAutoDiscoveryConfiguration> homeAssistantAutoDiscoveryConfiguration,
     ILogger<MqttListener> logger)
@@ -115,6 +117,7 @@ internal sealed class MqttListener(
                         var apartment = await apartmentService.GetApartmentInfo(_cts.Token);
                         await publisher.Publish(apartment, _cts.Token);
                         await publisher.PublishHomeAssistantAutoDiscovery(apartment, _cts.Token);
+                        autoDiscoveryPublicationState.MarkDiscoveryPublished();
                     }
                 }
                 catch (Exception ex)

@@ -3,6 +3,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
 using SbmFizikusToMqtt.Application.BackgroundJobs;
+using SbmFizikusToMqtt.Application.Services;
 using SbmFizikusToMqtt.Application.Tests.Fakers;
 using SbmFizikusToMqtt.Domain;
 using SbmFizikusToMqtt.MqttConnector.Interfaces;
@@ -14,6 +15,7 @@ public sealed class InitialSbmPollingJobTests
 {
 
     private readonly Mock<IApartmentService> _apartmentServiceMock;
+    private readonly AutoDiscoveryPublicationState _autoDiscoveryPublicationState = new();
     private readonly Mock<ILogger<InitialSbmPollingJob>> _loggerMock;
     private readonly Mock<IMqttConnection> _mqttConnectionMock;
     private readonly Mock<IMqttPublisher> _publisherMock;
@@ -53,6 +55,44 @@ public sealed class InitialSbmPollingJobTests
         _mqttConnectionMock.Verify(x => x.WaitUntilConnectedAsync(It.IsAny<CancellationToken>()), Times.Once);
         _apartmentServiceMock.Verify(x => x.GetApartmentInfo(It.IsAny<CancellationToken>()), Times.Once);
         _publisherMock.Verify(x => x.Publish(apartment, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_MqttConnected_MarksDiscoveryAsPublished()
+    {
+        // Arrange
+        var apartment = ApartmentFakers.ApartmentFaker.Generate();
+        _apartmentServiceMock
+            .Setup(x => x.GetApartmentInfo(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(apartment);
+
+        var sut = CreateJob();
+
+        // Act
+        await InvokeExecuteAsync(sut, CancellationToken.None);
+
+        // Assert
+        _publisherMock.Verify(
+            x => x.PublishHomeAssistantAutoDiscovery(apartment, It.IsAny<CancellationToken>()),
+            Times.Once);
+        Assert.True(_autoDiscoveryPublicationState.HasPublishedDiscovery);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_SbmUnavailable_DoesNotMarkDiscoveryAsPublished()
+    {
+        // Arrange
+        _apartmentServiceMock
+            .Setup(x => x.GetApartmentInfo(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new HttpRequestException("Network error"));
+
+        var sut = CreateJob();
+
+        // Act
+        await InvokeExecuteAsync(sut, CancellationToken.None);
+
+        // Assert
+        Assert.False(_autoDiscoveryPublicationState.HasPublishedDiscovery);
     }
 
     [Fact]
@@ -247,6 +287,7 @@ public sealed class InitialSbmPollingJobTests
             _mqttConnectionMock.Object,
             _apartmentServiceMock.Object,
             _publisherMock.Object,
+            _autoDiscoveryPublicationState,
             _loggerMock.Object);
     }
 

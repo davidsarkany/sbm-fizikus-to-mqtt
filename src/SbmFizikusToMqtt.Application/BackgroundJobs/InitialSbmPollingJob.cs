@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using SbmFizikusToMqtt.Application.Services;
 using SbmFizikusToMqtt.MqttConnector.Interfaces;
 using SbmFizikusToMqtt.SbmConnector.Interfaces;
 
@@ -9,6 +10,7 @@ internal sealed class InitialSbmPollingJob(
     IMqttConnection mqttConnection,
     IApartmentService apartmentService,
     IMqttPublisher publisher,
+    IAutoDiscoveryPublicationState autoDiscoveryPublicationState,
     ILogger<InitialSbmPollingJob> logger)
     : BackgroundService
 {
@@ -23,6 +25,7 @@ internal sealed class InitialSbmPollingJob(
             var apartment = await apartmentService.GetApartmentInfo(stoppingToken);
             await publisher.Publish(apartment, stoppingToken);
             await publisher.PublishHomeAssistantAutoDiscovery(apartment, stoppingToken);
+            autoDiscoveryPublicationState.MarkDiscoveryPublished();
             logger.LogInformation("Initial SBM polling completed successfully");
         }
         catch (OperationCanceledException ex)
