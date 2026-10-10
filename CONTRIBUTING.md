@@ -28,11 +28,14 @@ Thank you for your interest in contributing! This document explains how to repor
 dotnet build
 ```
 
-3. Run tests locally:
+3. Run tests locally. The integration tests start Mosquitto with Testcontainers, so they need Docker. Skip them with the filter shown below:
 
 ```
-dotnet test
+dotnet test src/SbmFizikusToMqtt.slnx
+dotnet test src/SbmFizikusToMqtt.slnx --filter "Category!=Integration"
 ```
+
+CI enforces line coverage (Core ≥ 90 %, Infrastructure ≥ 80 %). Check it locally with `dotnet test src/SbmFizikusToMqtt.slnx /p:CollectCoverage=true`.
 
 4. Tools and formatting
 - Formatting uses `dotnet format`, which ships with the .NET SDK (no local tool restore is needed). Check formatting with:
@@ -57,6 +60,7 @@ If the check reports formatting issues, run `dotnet format src/SbmFizikusToMqtt.
 ## Tests
 - Add unit tests for new functionality and bug fixes.
 - Ensure existing tests pass before submitting a PR.
+- MQTT payloads, Home Assistant discovery configs and SBM requests are pinned by golden files (`*.verified.txt`). If you change them on purpose, review the generated `.received.txt` diff and accept it (rename it, or run the tests with `SNAPSHOT_ACCEPT=1`).
 
 ## CI / Validation
 - The repository uses automated CI (see the `.github/workflows` folder). PRs should pass all checks before merge.

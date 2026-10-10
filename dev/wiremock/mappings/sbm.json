@@ -1,0 +1,44 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/frontend",
+        "bodyPatterns": [{ "matchesJsonPath": "$[?(@.operation == 'get_jw_token')]" }]
+      },
+      "response": { "status": 200, "headers": { "Content-Type": "application/json" }, "bodyFileName": "get_jw_token.json" }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/frontend",
+        "bodyPatterns": [{ "matchesJsonPath": "$[?(@.operation == 'get_building_access_rights')]" }]
+      },
+      "response": { "status": 200, "headers": { "Content-Type": "application/json" }, "bodyFileName": "get_building_access_rights.json" }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/frontend",
+        "bodyPatterns": [{ "matchesJsonPath": "$[?(@.operation == 'get_apartment_access_rights')]" }]
+      },
+      "response": { "status": 200, "headers": { "Content-Type": "application/json" }, "bodyFileName": "get_apartment_access_rights.json" }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/frontend",
+        "bodyPatterns": [{ "matchesJsonPath": "$[?(@.operation == 'get_apartment_data')]" }]
+      },
+      "response": { "status": 200, "headers": { "Content-Type": "application/json" }, "bodyFileName": "get_apartment_data.json" }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/frontend",
+        "bodyPatterns": [{ "matchesJsonPath": "$[?(@.operation == 'update_thermostat_settings')]" }]
+      },
+      "response": { "status": 200, "headers": { "Content-Type": "application/json" }, "bodyFileName": "update_thermostat_settings.json" }
+    }
+  ]
+}

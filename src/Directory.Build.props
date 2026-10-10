@@ -1,0 +1,68 @@
+<Project>
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <IsTestProject Condition="$(MSBuildProjectName.EndsWith('Tests'))">true</IsTestProject>
+    </PropertyGroup>
+
+    <!-- The host is published with Native AOT, so every library it references must be trim and AOT safe. -->
+    <PropertyGroup Condition="'$(IsTestProject)' != 'true' and !$(MSBuildProjectName.EndsWith('AppHost'))">
+        <IsAotCompatible>true</IsAotCompatible>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(IsTestProject)' == 'true'">
+        <IsPackable>false</IsPackable>
+        <OutputType>Exe</OutputType>
+        <!-- xUnit v3 runs through VSTest so that coverlet can measure coverage with plain `dotnet test`. -->
+        <IsTestingPlatformApplication>false</IsTestingPlatformApplication>
+    </PropertyGroup>
+
+    <ItemGroup Condition="'$(IsTestProject)' == 'true'">
+        <PackageReference Include="coverlet.msbuild">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.NET.Test.Sdk"/>
+        <PackageReference Include="xunit.v3"/>
+        <PackageReference Include="xunit.runner.visualstudio">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <Using Include="Xunit"/>
+        <Using Include="SbmFizikusToMqtt.TestShared"/>
+        <Compile Include="$(MSBuildThisFileDirectory)TestShared\**\*.cs" LinkBase="TestShared"/>
+    </ItemGroup>
+
+    <!--
+        Coverage gates, active with `dotnet test /p:CollectCoverage=true`: each unit test project measures only the
+        project it tests. The host is covered by Host.Tests and the integration tests and has no gate.
+    -->
+    <PropertyGroup Condition="'$(IsTestProject)' == 'true'">
+        <CoverletOutputFormat>cobertura</CoverletOutputFormat>
+        <CoverletOutput>$(MSBuildProjectDirectory)/TestResults/</CoverletOutput>
+        <ThresholdType>line</ThresholdType>
+        <ExcludeByAttribute>GeneratedCodeAttribute,CompilerGeneratedAttribute</ExcludeByAttribute>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(MSBuildProjectName)' == 'SbmFizikusToMqtt.Core.Tests'">
+        <Include>[SbmFizikusToMqtt.Core]*</Include>
+        <Threshold>90</Threshold>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(MSBuildProjectName)' == 'SbmFizikusToMqtt.Infrastructure.Tests'">
+        <Include>[SbmFizikusToMqtt.Infrastructure]*</Include>
+        <Threshold>80</Threshold>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(MSBuildProjectName)' == 'SbmFizikusToMqtt.Host.Tests'">
+        <Include>[SbmFizikusToMqtt]*</Include>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(MSBuildProjectName)' == 'SbmFizikusToMqtt.IntegrationTests'">
+        <Include>[SbmFizikusToMqtt]*</Include>
+    </PropertyGroup>
+
+</Project>

@@ -1,0 +1,51 @@
+{
+  "SystemMode": "Heating",
+  "Thermostats": [
+    {
+      "Id": 1763,
+      "Name": "living-room",
+      "Temperature": 24.8,
+      "Humidity": 60,
+      "TargetTemperature": 23,
+      "DewPoint": 15.934023536720074,
+      "Active": false,
+      "LastUpdate": "2026-10-10T12:45:40.423168+00:00"
+    },
+    {
+      "Id": 1764,
+      "Name": "child-room-2",
+      "Temperature": 24.6,
+      "Humidity": 55,
+      "TargetTemperature": 22,
+      "DewPoint": 15.934023536720074,
+      "Active": false,
+      "LastUpdate": "2026-10-10T12:45:40.423326+00:00"
+    },
+    {
+      "Id": 1765,
+      "Name": "child-room-1",
+      "Temperature": 24.7,
+      "Humidity": 59,
+      "TargetTemperature": 23,
+      "DewPoint": 15.934023536720074,
+      "Active": false,
+      "LastUpdate": "2026-10-10T12:45:40.423457+00:00"
+    },
+    {
+      "Id": 1766,
+      "Name": "bedroom",
+      "Temperature": 24.2,
+      "Humidity": 60,
+      "TargetTemperature": 23,
+      "DewPoint": 15.934023536720074,
+      "Active": false,
+      "LastUpdate": "2026-10-10T12:45:40.423579+00:00"
+    }
+  ],
+  "LastUpdate": "2026-10-10T12:45:11.578277+00:00",
+  "RelayConnectionActive": true,
+  "ThermostatsConnectionActive": true,
+  "OutdoorTemperature": 19.9,
+  "OutdoorHumidity": 49.9,
+  "IsConnected": true
+}

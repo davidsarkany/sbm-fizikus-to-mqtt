@@ -1,0 +1,18 @@
+<Project Sdk="Aspire.AppHost.Sdk/13.6.1">
+
+    <!-- Local development orchestration only; not part of the Docker image. -->
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <AspireUseCliBundle>true</AspireUseCliBundle>
+        <UserSecretsId>2eeea65c-2a6e-4bff-9202-c73224e03ed8</UserSecretsId>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="CommunityToolkit.Aspire.Hosting.Mosquitto"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\SbmFizikusToMqtt.Host\SbmFizikusToMqtt.Host.csproj"/>
+    </ItemGroup>
+
+</Project>

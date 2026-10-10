@@ -1,0 +1,355 @@
+=== homeassistant/device/sbm_fizikus_apartment/config (retain: yes, qos: AtLeastOnce)
+{
+  "device": {
+    "identifiers": [
+      "sbm_fizikus_apartment"
+    ],
+    "name": "SBM Fizikus",
+    "manufacturer": "SBM-Verting",
+    "model": "Fizikus"
+  },
+  "origin": {
+    "name": "sbm-fizikus-to-mqtt",
+    "sw_version": "3.0.0-test",
+    "support_url": "https://github.com/davidsarkany/sbm-fizikus-to-mqtt"
+  },
+  "components": {
+    "system_mode": {
+      "platform": "sensor",
+      "unique_id": "sbm_fizikus-apartment_info_system_mode",
+      "name": "System mode",
+      "state_topic": "sbm_fizikus/apartment_info",
+      "value_template": "{{ value_json.system_mode }}",
+      "entity_category": "diagnostic",
+      "availability": [
+        {
+          "topic": "sbm_fizikus/bridge/state",
+          "value_template": "{{ value_json.state }}"
+        },
+        {
+          "topic": "sbm_fizikus/apartment_info",
+          "value_template": "{{ 'online' if value_json.connected else 'offline' }}"
+        }
+      ],
+      "availability_mode": "all"
+    },
+    "outdoor_temperature": {
+      "platform": "sensor",
+      "unique_id": "sbm_fizikus-apartment_info_outdoor_temperature",
+      "name": "Outdoor temperature",
+      "state_topic": "sbm_fizikus/apartment_info",
+      "value_template": "{{ value_json.outdoor_temperature }}",
+      "device_class": "temperature",
+      "unit_of_measurement": "°C",
+      "availability": [
+        {
+          "topic": "sbm_fizikus/bridge/state",
+          "value_template": "{{ value_json.state }}"
+        },
+        {
+          "topic": "sbm_fizikus/apartment_info",
+          "value_template": "{{ 'online' if value_json.connected else 'offline' }}"
+        }
+      ],
+      "availability_mode": "all"
+    },
+    "outdoor_humidity": {
+      "platform": "sensor",
+      "unique_id": "sbm_fizikus-apartment_info_outdoor_humidity",
+      "name": "Outdoor humidity",
+      "state_topic": "sbm_fizikus/apartment_info",
+      "value_template": "{{ value_json.outdoor_humidity }}",
+      "device_class": "humidity",
+      "unit_of_measurement": "%",
+      "availability": [
+        {
+          "topic": "sbm_fizikus/bridge/state",
+          "value_template": "{{ value_json.state }}"
+        },
+        {
+          "topic": "sbm_fizikus/apartment_info",
+          "value_template": "{{ 'online' if value_json.connected else 'offline' }}"
+        }
+      ],
+      "availability_mode": "all"
+    }
+  }
+}
+
+=== homeassistant/device/sbm_fizikus_thermostat_1763/config (retain: yes, qos: AtLeastOnce)
+{
+  "device": {
+    "identifiers": [
+      "sbm_fizikus_thermostat_1763"
+    ],
+    "name": "living-room",
+    "manufacturer": "SBM-Verting",
+    "model": "Fizikus thermostat",
+    "via_device": "sbm_fizikus_apartment"
+  },
+  "origin": {
+    "name": "sbm-fizikus-to-mqtt",
+    "sw_version": "3.0.0-test",
+    "support_url": "https://github.com/davidsarkany/sbm-fizikus-to-mqtt"
+  },
+  "components": {
+    "climate": {
+      "platform": "climate",
+      "unique_id": "sbm_fizikus-1763_climate",
+      "name": null,
+      "action_topic": "sbm_fizikus/devices/1763",
+      "action_template": "{{ value_json.system_mode }}",
+      "current_temperature_topic": "sbm_fizikus/devices/1763",
+      "current_temperature_template": "{{ value_json.temperature }}",
+      "current_humidity_topic": "sbm_fizikus/devices/1763",
+      "current_humidity_template": "{{ value_json.humidity }}",
+      "temperature_state_topic": "sbm_fizikus/devices/1763",
+      "temperature_state_template": "{{ value_json.target_temperature }}",
+      "temperature_command_topic": "sbm_fizikus/devices/1763/set",
+      "temperature_command_template": "{{ {'id': 1763, 'value': value } | to_json }}",
+      "temperature_unit": "C",
+      "temp_step": 0.5,
+      "min_temp": 5,
+      "max_temp": 35,
+      "precision": 0.1,
+      "modes": [
+        "heat",
+        "cool"
+      ],
+      "mode_state_topic": "sbm_fizikus/apartment_info",
+      "mode_state_template": "{{ value_json.system_mode | replace('cooling', 'cool') | replace('heating', 'heat') }}",
+      "availability": [
+        {
+          "topic": "sbm_fizikus/bridge/state",
+          "value_template": "{{ value_json.state }}"
+        },
+        {
+          "topic": "sbm_fizikus/apartment_info",
+          "value_template": "{{ 'online' if value_json.connected else 'offline' }}"
+        }
+      ],
+      "availability_mode": "all"
+    },
+    "temperature": {
+      "platform": "sensor",
+      "unique_id": "sbm_fizikus-1763_temperature",
+      "name": "Temperature",
+      "state_topic": "sbm_fizikus/devices/1763",
+      "value_template": "{{ value_json.temperature }}",
+      "device_class": "temperature",
+      "state_class": "measurement",
+      "unit_of_measurement": "°C",
+      "availability": [
+        {
+          "topic": "sbm_fizikus/bridge/state",
+          "value_template": "{{ value_json.state }}"
+        },
+        {
+          "topic": "sbm_fizikus/apartment_info",
+          "value_template": "{{ 'online' if value_json.connected else 'offline' }}"
+        }
+      ],
+      "availability_mode": "all"
+    },
+    "target_temperature": {
+      "platform": "sensor",
+      "unique_id": "sbm_fizikus-1763_temperature_target",
+      "name": "Target temperature",
+      "state_topic": "sbm_fizikus/devices/1763",
+      "value_template": "{{ value_json.target_temperature }}",
+      "device_class": "temperature",
+      "state_class": "measurement",
+      "unit_of_measurement": "°C",
+      "availability": [
+        {
+          "topic": "sbm_fizikus/bridge/state",
+          "value_template": "{{ value_json.state }}"
+        },
+        {
+          "topic": "sbm_fizikus/apartment_info",
+          "value_template": "{{ 'online' if value_json.connected else 'offline' }}"
+        }
+      ],
+      "availability_mode": "all"
+    },
+    "humidity": {
+      "platform": "sensor",
+      "unique_id": "sbm_fizikus-1763_humidity",
+      "name": "Humidity",
+      "state_topic": "sbm_fizikus/devices/1763",
+      "value_template": "{{ value_json.humidity }}",
+      "device_class": "humidity",
+      "state_class": "measurement",
+      "unit_of_measurement": "%",
+      "availability": [
+        {
+          "topic": "sbm_fizikus/bridge/state",
+          "value_template": "{{ value_json.state }}"
+        },
+        {
+          "topic": "sbm_fizikus/apartment_info",
+          "value_template": "{{ 'online' if value_json.connected else 'offline' }}"
+        }
+      ],
+      "availability_mode": "all"
+    },
+    "system_mode": {
+      "platform": "sensor",
+      "unique_id": "sbm_fizikus-1763_system_mode",
+      "name": "System mode",
+      "state_topic": "sbm_fizikus/devices/1763",
+      "value_template": "{{ value_json.system_mode }}",
+      "entity_category": "diagnostic",
+      "availability": [
+        {
+          "topic": "sbm_fizikus/bridge/state",
+          "value_template": "{{ value_json.state }}"
+        },
+        {
+          "topic": "sbm_fizikus/apartment_info",
+          "value_template": "{{ 'online' if value_json.connected else 'offline' }}"
+        }
+      ],
+      "availability_mode": "all"
+    }
+  }
+}
+
+=== homeassistant/device/sbm_fizikus_thermostat_1764/config (retain: yes, qos: AtLeastOnce)
+{
+  "device": {
+    "identifiers": [
+      "sbm_fizikus_thermostat_1764"
+    ],
+    "name": "Thermostat 1764",
+    "manufacturer": "SBM-Verting",
+    "model": "Fizikus thermostat",
+    "via_device": "sbm_fizikus_apartment"
+  },
+  "origin": {
+    "name": "sbm-fizikus-to-mqtt",
+    "sw_version": "3.0.0-test",
+    "support_url": "https://github.com/davidsarkany/sbm-fizikus-to-mqtt"
+  },
+  "components": {
+    "climate": {
+      "platform": "climate",
+      "unique_id": "sbm_fizikus-1764_climate",
+      "name": null,
+      "action_topic": "sbm_fizikus/devices/1764",
+      "action_template": "{{ value_json.system_mode }}",
+      "current_temperature_topic": "sbm_fizikus/devices/1764",
+      "current_temperature_template": "{{ value_json.temperature }}",
+      "current_humidity_topic": "sbm_fizikus/devices/1764",
+      "current_humidity_template": "{{ value_json.humidity }}",
+      "temperature_state_topic": "sbm_fizikus/devices/1764",
+      "temperature_state_template": "{{ value_json.target_temperature }}",
+      "temperature_command_topic": "sbm_fizikus/devices/1764/set",
+      "temperature_command_template": "{{ {'id': 1764, 'value': value } | to_json }}",
+      "temperature_unit": "C",
+      "temp_step": 0.5,
+      "min_temp": 5,
+      "max_temp": 35,
+      "precision": 0.1,
+      "modes": [
+        "heat",
+        "cool"
+      ],
+      "mode_state_topic": "sbm_fizikus/apartment_info",
+      "mode_state_template": "{{ value_json.system_mode | replace('cooling', 'cool') | replace('heating', 'heat') }}",
+      "availability": [
+        {
+          "topic": "sbm_fizikus/bridge/state",
+          "value_template": "{{ value_json.state }}"
+        },
+        {
+          "topic": "sbm_fizikus/apartment_info",
+          "value_template": "{{ 'online' if value_json.connected else 'offline' }}"
+        }
+      ],
+      "availability_mode": "all"
+    },
+    "temperature": {
+      "platform": "sensor",
+      "unique_id": "sbm_fizikus-1764_temperature",
+      "name": "Temperature",
+      "state_topic": "sbm_fizikus/devices/1764",
+      "value_template": "{{ value_json.temperature }}",
+      "device_class": "temperature",
+      "state_class": "measurement",
+      "unit_of_measurement": "°C",
+      "availability": [
+        {
+          "topic": "sbm_fizikus/bridge/state",
+          "value_template": "{{ value_json.state }}"
+        },
+        {
+          "topic": "sbm_fizikus/apartment_info",
+          "value_template": "{{ 'online' if value_json.connected else 'offline' }}"
+        }
+      ],
+      "availability_mode": "all"
+    },
+    "target_temperature": {
+      "platform": "sensor",
+      "unique_id": "sbm_fizikus-1764_temperature_target",
+      "name": "Target temperature",
+      "state_topic": "sbm_fizikus/devices/1764",
+      "value_template": "{{ value_json.target_temperature }}",
+      "device_class": "temperature",
+      "state_class": "measurement",
+      "unit_of_measurement": "°C",
+      "availability": [
+        {
+          "topic": "sbm_fizikus/bridge/state",
+          "value_template": "{{ value_json.state }}"
+        },
+        {
+          "topic": "sbm_fizikus/apartment_info",
+          "value_template": "{{ 'online' if value_json.connected else 'offline' }}"
+        }
+      ],
+      "availability_mode": "all"
+    },
+    "humidity": {
+      "platform": "sensor",
+      "unique_id": "sbm_fizikus-1764_humidity",
+      "name": "Humidity",
+      "state_topic": "sbm_fizikus/devices/1764",
+      "value_template": "{{ value_json.humidity }}",
+      "device_class": "humidity",
+      "state_class": "measurement",
+      "unit_of_measurement": "%",
+      "availability": [
+        {
+          "topic": "sbm_fizikus/bridge/state",
+          "value_template": "{{ value_json.state }}"
+        },
+        {
+          "topic": "sbm_fizikus/apartment_info",
+          "value_template": "{{ 'online' if value_json.connected else 'offline' }}"
+        }
+      ],
+      "availability_mode": "all"
+    },
+    "system_mode": {
+      "platform": "sensor",
+      "unique_id": "sbm_fizikus-1764_system_mode",
+      "name": "System mode",
+      "state_topic": "sbm_fizikus/devices/1764",
+      "value_template": "{{ value_json.system_mode }}",
+      "entity_category": "diagnostic",
+      "availability": [
+        {
+          "topic": "sbm_fizikus/bridge/state",
+          "value_template": "{{ value_json.state }}"
+        },
+        {
+          "topic": "sbm_fizikus/apartment_info",
+          "value_template": "{{ 'online' if value_json.connected else 'offline' }}"
+        }
+      ],
+      "availability_mode": "all"
+    }
+  }
+}

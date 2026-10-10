@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <!-- End-to-end tests of the whole host against a real Mosquitto broker (Testcontainers, needs Docker)
+         and a WireMock fake of the SBM API serving the anonymized real responses. -->
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing"/>
+        <PackageReference Include="MQTTnet"/>
+        <PackageReference Include="Testcontainers"/>
+        <PackageReference Include="WireMock.Net"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\SbmFizikusToMqtt.Host\SbmFizikusToMqtt.Host.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="..\SbmFizikusToMqtt.Infrastructure.Tests\TestData\**\*" LinkBase="TestData"
+              CopyToOutputDirectory="PreserveNewest"/>
+    </ItemGroup>
+
+</Project>

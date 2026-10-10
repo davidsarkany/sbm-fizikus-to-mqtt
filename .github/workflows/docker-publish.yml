@@ -35,8 +35,20 @@ jobs:
       - name: Build
         run: dotnet build src --no-restore
 
-      - name: Run tests
-        run: dotnet test src --no-build --verbosity normal
+      # Unit, adapter and integration tests (the latter start Mosquitto with Testcontainers).
+      # Fails when line coverage drops below the gates in src/Directory.Build.props.
+      - name: Run tests with coverage gates
+        run: dotnet test src --no-build --verbosity normal /p:CollectCoverage=true
+
+      - name: Coverage summary
+        if: always()
+        run: |
+          echo "## Line coverage" >> $GITHUB_STEP_SUMMARY
+          for report in src/*/TestResults/coverage.cobertura.xml; do
+            [ -f "$report" ] || continue
+            rate=$(grep -o -m1 'line-rate="[0-9.]*"' "$report" | grep -o '[0-9.]*')
+            echo "- $(basename "$(dirname "$(dirname "$report")")"): $(awk "BEGIN { printf \"%.1f%%\", $rate * 100 }")" >> $GITHUB_STEP_SUMMARY
+          done
 
   build:
     needs: test

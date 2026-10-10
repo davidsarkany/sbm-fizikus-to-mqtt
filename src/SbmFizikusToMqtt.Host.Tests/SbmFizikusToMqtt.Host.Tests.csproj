@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <!-- Unit tests of the composition root: settings binding and validation, console log format. No Docker. -->
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\SbmFizikusToMqtt.Host\SbmFizikusToMqtt.Host.csproj"/>
+    </ItemGroup>
+
+</Project>

@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <!-- Composition root: configuration, logging, health endpoints and the hosted bridge loop. -->
+    <PropertyGroup>
+        <AssemblyName>SbmFizikusToMqtt</AssemblyName>
+        <RootNamespace>SbmFizikusToMqtt.Host</RootNamespace>
+        <Version>3.0.0</Version>
+        <!-- Published as a Native AOT executable; the build runs the trim and AOT analyzers. -->
+        <PublishAot>true</PublishAot>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\SbmFizikusToMqtt.Core\SbmFizikusToMqtt.Core.csproj"/>
+        <ProjectReference Include="..\SbmFizikusToMqtt.Infrastructure\SbmFizikusToMqtt.Infrastructure.csproj"/>
+        <ProjectReference Include="..\SbmFizikusToMqtt.ServiceDefaults\SbmFizikusToMqtt.ServiceDefaults.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="SbmFizikusToMqtt.Host.Tests"/>
+        <InternalsVisibleTo Include="SbmFizikusToMqtt.IntegrationTests"/>
+    </ItemGroup>
+
+</Project>

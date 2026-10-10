@@ -1,0 +1,36 @@
+# Local end-to-end environment: Mosquitto, a WireMock fake of the SBM API serving the anonymized real
+# responses, and the bridge built from source. No SBM account needed.
+#
+#   docker compose -f docker-compose.dev.yml up --build
+#   docker compose -f docker-compose.dev.yml exec mosquitto mosquitto_sub -v -t '#'
+#   curl http://localhost:8081/health/ready
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2.0.22
+    command: ["mosquitto", "-c", "/mosquitto-no-auth.conf"]
+    ports:
+      - "1883:1883"
+
+  sbm-mock:
+    image: wiremock/wiremock:3.10.0
+    volumes:
+      - ./dev/wiremock/mappings:/home/wiremock/mappings:ro
+      - ./src/SbmFizikusToMqtt.Infrastructure.Tests/TestData/sbm:/home/wiremock/__files:ro
+
+  sbm-integration:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - mosquitto
+      - sbm-mock
+    ports:
+      - "8081:8080"
+    environment:
+      - TZ=Europe/Budapest
+      - SbmConnector__Username=dev@example.com
+      - SbmConnector__Password=dev
+      - SbmConnector__BaseUrl=http://sbm-mock:8080
+      - SbmConnector__PollingIntervalSeconds=30
+      - MqttConnector__MqttServer__Host=mosquitto
+      - PublisherConfiguration__ThermostatTemperatureDiscoveryEnabled=true

@@ -23,6 +23,5 @@
 **/values.dev.yaml
 LICENSE
 README.md
-src/coverlet.runsettings
 src/.editorconfig
 src/.github/*.md

@@ -5,6 +5,52 @@ All notable changes to SBM Fizikus to MQTT will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2026-10-10
+
+Rewrite of the bridge. The configuration keys are unchanged; the v2 Home Assistant discovery configs must be removed before upgrading (see README, "Upgrading from v2").
+
+### Breaking changes
+
+- Home Assistant discovery now uses device-based discovery (`{HomeAssistantTopic}/device/…/config`), with one device per thermostat and an *SBM Fizikus* device for the building. **The v2 discovery configs are not migrated: remove them before upgrading, otherwise Home Assistant rejects the new entities as duplicate `unique_id`s.** Entity ids, history and settings are not guaranteed to be kept. A Home Assistant version with device-based discovery support is required.
+- Entity display names follow the device: the climate entity is named after the room, and the sensors are named *Temperature*, *Humidity*, etc.
+- State topics (`bridge/state`, `apartment_info`, `devices/{id}`) are published retained.
+- `bridge/state` now reports whether the bridge process is running: `online` on connect, `offline` on shutdown and as the retained last will. SBM connectivity moved to the new `connected` field of `apartment_info`, and entities are available only when both are online.
+- Temperature commands are validated: the payload id must match the topic id (the id is now optional), the thermostat must exist, and the value must be between 5 and 35 °C in 0.5 °C steps. Retained commands are ignored, because they would be replayed on every reconnect.
+- The image is built with Native AOT: it is based on `runtime-deps` (no .NET runtime), and its entry point is the executable `./SbmFizikusToMqtt` instead of `dotnet SbmFizikusToMqtt.dll`. The container exposes port 8080 for health checks.
+- Serilog is removed. Logs go to the console and, with OpenTelemetry, to `OTEL_EXPORTER_OTLP_ENDPOINT` (e.g. a local Grafana Alloy) instead of the Serilog Loki sink. All `Serilog__*` variables are ignored: log levels are set with `Logging__LogLevel__*` instead of `Serilog__MinimumLevel__*`. The console line format is unchanged, except that the levels are `TRC`/`CRT` instead of `VRB`/`FTL` and the output has no ANSI colors.
+
+### Added
+
+- Native AOT compilation. Compared with a JIT build on the `aspnet` image, the Docker image is about 48 MB instead of about 180 MB, and the bridge uses about 20 MB of memory instead of about 35 MB. The build fails on any trim or AOT warning.
+- `/health/live` and `/health/ready` endpoints and a Docker `HEALTHCHECK`.
+- Automatic MQTT reconnection with exponential backoff (1–60 s). State and discovery are republished after every reconnect.
+- Retries of transient SBM API errors, and a fresh login when SBM rejects the session.
+- Entities that are switched off in the configuration are removed from Home Assistant.
+- Discovery is republished when the thermostats change. A thermostat that SBM no longer reports has its retained discovery config and state cleared, so Home Assistant removes it.
+- A warning when the SBM account has more than one building or apartment.
+- An Information log line after every refresh: trigger, thermostat count, calling zones, system mode, SBM connection and data age.
+- `docker-compose.dev.yml` for running the bridge locally against Mosquitto and a fake SBM API.
+- Aspire AppHost for local development (`aspire run`). It starts Mosquitto, the SBM fake (or the real SBM cloud via user secrets) and the bridge, with logs, traces and metrics in the Aspire dashboard.
+- OpenTelemetry through Aspire service defaults. Export happens only when `OTEL_EXPORTER_OTLP_ENDPOINT` is set. Each handled event is one trace (`bridge poll`, `bridge set_temperature`, `bridge mqtt_connected`, `bridge homeassistant_status`). It contains the SBM calls as `SBM {operation}` spans (e.g. `SBM get_apartment_data`, with the HTTP request as their child) and a `bridge publish_discovery` span. Failed events are marked as errors; rejected commands carry a `bridge.rejected` attribute. Without `OTEL_SERVICE_NAME`, the service is reported as `sbm-fizikus-to-mqtt` with the application version.
+
+### Changed
+
+- New architecture: `Core` (logic), `Infrastructure` (SBM and MQTT adapters) and `Host`, replacing seven projects.
+- Enabling the outdoor sensor discovery now also enables fetching outdoor weather.
+- MQTT username and password are optional. The default client id is `sbm-fizikus-mqtt`.
+- Polls, commands and Home Assistant events are processed one at a time, so they no longer run concurrently.
+- Tests: snapshot tests of the wire formats, adapter tests with anonymized real SBM responses, and integration tests against Mosquitto. Line coverage is enforced in CI.
+
+### Fixed
+
+- `last_update` timestamps were shifted by the container's time zone. SBM sends them in UTC without an offset, and v2 read them as local time.
+- An unexpected MQTT disconnect no longer stops the application.
+- A failed startup now exits with code 1.
+
+### Removed
+
+- Serilog (`Serilog.AspNetCore`, `Serilog.Settings.Configuration`, `Serilog.Sinks.Console` and the Loki sink `Serilog.Sinks.Loki.YetAnother`), replaced by the built-in .NET logging and OpenTelemetry export, and the AutoBogus test dependency.
+
 ## [2.1.3] - 2026-10-09
 
 ### Fixed

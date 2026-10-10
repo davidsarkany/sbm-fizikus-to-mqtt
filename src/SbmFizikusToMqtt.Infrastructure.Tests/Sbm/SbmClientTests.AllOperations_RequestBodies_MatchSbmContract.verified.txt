@@ -1,0 +1,10 @@
+PUT https://sbm.example.com/frontend [application/json; charset=utf-8]
+{"operation":"get_jw_token","payload":{"username_or_email":"user@example.com","pwhash":"2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b"}}
+PUT https://sbm.example.com/frontend [application/json; charset=utf-8]
+{"operation":"get_building_access_rights","payload":{"jwt_token":"jwt"}}
+PUT https://sbm.example.com/frontend [application/json; charset=utf-8]
+{"operation":"get_apartment_access_rights","payload":{"building_id":"24","jwt_token":"jwt"}}
+PUT https://sbm.example.com/frontend [application/json; charset=utf-8]
+{"operation":"get_apartment_data","payload":{"apartment_id":702,"jwt_token":"jwt"}}
+PUT https://sbm.example.com/frontend [application/json; charset=utf-8]
+{"operation":"update_thermostat_settings","payload":{"thermostat_id":1763,"temp_setpoint_degC":21.5,"jwt_token":"jwt"}}

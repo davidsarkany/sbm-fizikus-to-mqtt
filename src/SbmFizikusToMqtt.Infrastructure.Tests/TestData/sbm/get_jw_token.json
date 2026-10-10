@@ -1,0 +1,10 @@
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QtdXNlciIsInR5cGUiOiJhY2Nlc3MifQ.dGVzdC1zaWduYXR1cmU",
+  "expiration": "2099-10-11 12:45:26.411281+00:00",
+  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QtdXNlciIsInR5cGUiOiJyZWZyZXNoIn0.dGVzdC1zaWduYXR1cmU",
+  "refresh_token_expiration": "2099-10-15 12:45:26.411281+00:00",
+  "rights": [
+    "ap_owner"
+  ],
+  "role_level": 0
+}

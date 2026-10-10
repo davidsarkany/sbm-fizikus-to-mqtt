@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing"/>
+        <PackageReference Include="MQTTnet.Server"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\SbmFizikusToMqtt.Infrastructure\SbmFizikusToMqtt.Infrastructure.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="TestData\**\*" CopyToOutputDirectory="PreserveNewest"/>
+    </ItemGroup>
+
+</Project>
