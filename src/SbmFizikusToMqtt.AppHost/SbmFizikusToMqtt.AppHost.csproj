@@ -9,6 +9,7 @@
 
     <ItemGroup>
         <PackageReference Include="CommunityToolkit.Aspire.Hosting.Mosquitto"/>
+        <PackageReference Include="MessagePack"/>
     </ItemGroup>
 
     <ItemGroup>
