@@ -10,6 +10,7 @@
     <ItemGroup>
         <PackageReference Include="CommunityToolkit.Aspire.Hosting.Mosquitto"/>
         <PackageReference Include="MessagePack"/>
+        <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
     </ItemGroup>
 
     <ItemGroup>
