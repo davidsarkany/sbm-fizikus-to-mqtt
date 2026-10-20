@@ -16,7 +16,7 @@
     <ItemGroup Label="Aspire (local orchestration and service defaults)">
         <PackageVersion Include="CommunityToolkit.Aspire.Hosting.Mosquitto" Version="13.6.0"/>
         <!-- Transitive via Aspire.Hosting; pinned above 2.5.302 for GHSA-qhrr-8q5h-9q3h. -->
-        <PackageVersion Include="MessagePack" Version="2.5.307"/>
+        <PackageVersion Include="MessagePack" Version="3.1.12"/>
         <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="10.11.0"/>
         <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.20.0"/>
         <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.20.0"/>
