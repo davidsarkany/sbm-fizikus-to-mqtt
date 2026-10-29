@@ -23,6 +23,11 @@ internal sealed class InProcessBroker : IAsyncDisposable
 
     public bool IsStarted => _server.IsStarted;
 
+    public void InterceptSubscriptions(Func<InterceptingSubscriptionEventArgs, Task> handler)
+    {
+        _server.InterceptingSubscriptionAsync += handler;
+    }
+
     public static InProcessBroker Create()
     {
         return new InProcessBroker(GetFreePort());

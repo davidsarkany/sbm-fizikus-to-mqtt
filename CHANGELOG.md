@@ -5,6 +5,14 @@ All notable changes to SBM Fizikus to MQTT will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.4] - 2026-10-30
+
+### Fixed
+
+- Detect rejected MQTT subscriptions and retry the connection before announcing the bridge as online.
+- Wait for both bridge loops to finish during shutdown, and cancel the sibling loop when either loop exits.
+- Redact login response bodies on HTTP errors as well as invalid JSON responses.
+
 ## [3.0.3] - 2026-10-30
 
 ### Changed

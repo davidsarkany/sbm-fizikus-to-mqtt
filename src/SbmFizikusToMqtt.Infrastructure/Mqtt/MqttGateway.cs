@@ -11,7 +11,7 @@ namespace SbmFizikusToMqtt.Infrastructure.Mqtt;
 
 /// <summary>
 ///     Owns the MQTT connection. It connects with a retained <c>offline</c> last will, keeps reconnecting with
-///     exponential backoff, and after every connect publishes <c>online</c>, re-subscribes and enqueues
+///     exponential backoff, and after every connect re-subscribes, publishes <c>online</c> and enqueues
 ///     <see cref="MqttConnected" />. Incoming messages are forwarded to the <see cref="BridgeCommandQueue" />.
 /// </summary>
 internal sealed class MqttGateway : BackgroundService, IMqttGateway
@@ -153,6 +153,19 @@ internal sealed class MqttGateway : BackgroundService, IMqttGateway
         _logger.LogInformation("Connecting to MQTT broker {Host}:{Port}", _options.Host, _options.Port);
         await _client.ConnectAsync(ClientOptions, cancellationToken);
 
+        var subscriptions = await _client.SubscribeAsync(new MqttClientSubscribeOptionsBuilder()
+            .WithTopicFilter(_topics.DeviceSetFilter, MqttQualityOfServiceLevel.AtLeastOnce)
+            .WithTopicFilter(_topics.HomeAssistantStatus, MqttQualityOfServiceLevel.AtLeastOnce)
+            .Build(), cancellationToken);
+
+        foreach (var subscription in subscriptions.Items)
+        {
+            if (subscription.ResultCode is not (MqttClientSubscribeResultCode.GrantedQoS0
+                or MqttClientSubscribeResultCode.GrantedQoS1 or MqttClientSubscribeResultCode.GrantedQoS2))
+                throw new InvalidOperationException(
+                    $"Subscribing to {subscription.TopicFilter.Topic} failed: {subscription.ResultCode}");
+        }
+
         await PublishAsync(new MqttMessage
         {
             Topic = _topics.BridgeState,
@@ -160,11 +173,6 @@ internal sealed class MqttGateway : BackgroundService, IMqttGateway
             Retain = true,
             Qos = MqttQos.AtLeastOnce
         }, cancellationToken);
-
-        await _client.SubscribeAsync(new MqttClientSubscribeOptionsBuilder()
-            .WithTopicFilter(_topics.DeviceSetFilter, MqttQualityOfServiceLevel.AtLeastOnce)
-            .WithTopicFilter(_topics.HomeAssistantStatus, MqttQualityOfServiceLevel.AtLeastOnce)
-            .Build(), cancellationToken);
 
         _status.MarkMqttConnected();
         _queue.Enqueue(new MqttConnected());

@@ -11,6 +11,55 @@ public sealed class MqttGatewayTests
     private const string Online = "{\"state\": \"online\"}";
     private const string Offline = "{\"state\": \"offline\"}";
 
+    [Theory]
+    [InlineData("sbm_fizikus/devices/+/set")]
+    [InlineData("homeassistant/status")]
+    public async Task ExecuteAsync_SubscriptionRejected_RetriesBeforeSignallingConnected(string rejectedTopic)
+    {
+        // Arrange
+        await using var broker = await InProcessBroker.StartNewAsync();
+        await using var fixture = new GatewayFixture(broker);
+        var retried = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var allowSubscription = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var attempts = 0;
+        broker.InterceptSubscriptions(async args =>
+        {
+            if (args.TopicFilter.Topic != rejectedTopic)
+                return;
+
+            if (Interlocked.Increment(ref attempts) == 1)
+            {
+                args.Response.ReasonCode = MQTTnet.Protocol.MqttSubscribeReasonCode.UnspecifiedError;
+                args.ProcessSubscription = false;
+                return;
+            }
+
+            retried.TrySetResult();
+            await allowSubscription.Task.WaitAsync(args.CancellationToken);
+        });
+
+        try
+        {
+            // Act
+            await fixture.Gateway.StartAsync(TestContext.Current.CancellationToken);
+            await retried.Task.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+
+            // Assert
+            Assert.False(fixture.Status.IsMqttConnected);
+            Assert.Equal(0, fixture.ConnectedCount);
+            Assert.NotEqual(Online, (await broker.GetRetainedAsync()).GetValueOrDefault(BridgeStateTopic));
+            allowSubscription.TrySetResult();
+            await Eventually.TrueAsync(() => fixture.ConnectedCount == 1, "accepted subscriptions signal connection");
+            await broker.PublishAsync("sbm_fizikus/devices/1763/set", "{\"value\":21.5}");
+            await broker.PublishAsync("homeassistant/status", "online");
+            await Eventually.TrueAsync(() => fixture.ReceivedMessages().Count == 2, "both subscriptions work after retry");
+        }
+        finally
+        {
+            allowSubscription.TrySetResult();
+        }
+    }
+
     [Fact]
     public async Task StartAsync_BrokerAvailable_PublishesRetainedOnlineAndSignalsConnected()
     {

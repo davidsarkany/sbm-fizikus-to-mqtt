@@ -114,4 +114,22 @@ public sealed class SbmClientTests
             ? _host.Client.GetBuildingAccessRightsAsync(Token, CancellationToken.None)
             : _host.Client.GetApartmentAccessRightsAsync(24, Token, CancellationToken.None));
     }
+
+    [Theory]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    public async Task LoginAsync_ErrorStatus_RedactsResponseBody(HttpStatusCode status)
+    {
+        // Arrange
+        _host.Handler.Respond("get_jw_token", status, "{\"token\":\"secret-token\"}");
+
+        // Act
+        var exception = await Assert.ThrowsAsync<SbmApiException>(() =>
+            _host.Client.LoginAsync("user", "password", TestContext.Current.CancellationToken));
+
+        // Assert
+        Assert.Equal(status, exception.StatusCode);
+        Assert.Contains("<redacted>", exception.Message);
+        Assert.DoesNotContain("secret-token", exception.ToString());
+    }
 }

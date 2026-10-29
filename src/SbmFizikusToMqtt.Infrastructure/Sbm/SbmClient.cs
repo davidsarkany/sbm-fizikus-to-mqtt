@@ -127,7 +127,7 @@ internal sealed class SbmClient(IHttpClientFactory httpClientFactory)
             {
                 throw new SbmApiException(response.StatusCode,
                     $"SBM API request failed with status {(int)response.StatusCode} ({response.ReasonPhrase}): " +
-                    Truncate(body));
+                    (includeBodyInErrors ? Truncate(body) : "<redacted>"));
             }
 
             var result = Deserialize(body, responseTypeInfo, includeBodyInErrors);

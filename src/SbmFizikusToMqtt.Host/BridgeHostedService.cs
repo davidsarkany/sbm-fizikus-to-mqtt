@@ -18,12 +18,25 @@ internal sealed class BridgeHostedService(
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        using var loopCancellation = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
+        var commands = ProcessCommandsAsync(loopCancellation.Token);
+        var polls = SchedulePollsAsync(loopCancellation.Token);
         try
         {
             // Both loops run until shutdown, so the first one to end decides: WhenAll would hide a failed command
             // loop behind the still-running poll loop.
-            var completed = await Task.WhenAny(ProcessCommandsAsync(stoppingToken), SchedulePollsAsync(stoppingToken));
-            await completed;
+            await Task.WhenAny(commands, polls);
+            await loopCancellation.CancelAsync();
+            try
+            {
+                // Observe both loops before the host can stop their dependencies.
+                await Task.WhenAll(commands, polls);
+            }
+            catch (OperationCanceledException) when (!commands.IsFaulted && !polls.IsFaulted)
+            {
+                // Cancellation of the sibling loop is expected.
+            }
+
             if (!stoppingToken.IsCancellationRequested)
                 throw new InvalidOperationException("A bridge loop ended unexpectedly");
         }

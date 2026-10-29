@@ -248,8 +248,9 @@ Without Alloy, use the values from the OpenTelemetry tile:
 
 ## Resilience
 
-- **MQTT:** the bridge reconnects with exponential backoff (1 s up to 60 s). After every reconnect it republishes its state and discovery, because a broker without persistence loses retained messages.
+- **MQTT:** the bridge reconnects with exponential backoff (1 s up to 60 s). Rejected subscriptions are logged and retried; the bridge announces itself as online only after both subscriptions are accepted. After every reconnect it republishes its state and discovery, because a broker without persistence loses retained messages.
 - **SBM:** transient errors are retried. A rejected session triggers one fresh login. A failed poll is logged and retried on the next one.
+- **Shutdown:** the bridge cancels and waits for both its polling and command-processing loops before stopping the MQTT connection, within the host's shutdown timeout.
 
 ## Development
 
@@ -327,5 +328,5 @@ The dependencies point inwards: Host → Infrastructure → Core. Core has no tr
 ## Troubleshooting
 
 - **Entities unavailable:** check `{SbmTopic}/bridge/state`, and the `connected` field of `{SbmTopic}/apartment_info`. `false` means SBM itself reports the relay module or the thermostats as unreachable.
-- **No data:** check `/health/ready` and the logs. SBM API errors include the response returned by the API.
+- **No data:** check `/health/ready` and the logs. SBM API errors include the response returned by the API, except login responses, whose bodies are redacted to protect tokens.
 - **Entities not discovered:** make sure Home Assistant's MQTT integration uses the same discovery prefix as `PublisherConfiguration__HomeAssistantTopic`.
