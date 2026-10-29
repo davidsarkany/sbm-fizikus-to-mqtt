@@ -1,9 +1,28 @@
-# Changelog
+﻿# Changelog
 
 All notable changes to SBM Fizikus to MQTT will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [3.0.3] - 2026-10-30
+
+### Changed
+
+- Updated Aspire.AppHost.Sdk from 13.6.1 to 13.6.4, MessagePack from 2.5.307 to 3.1.12, and WireMock.Net from 2.20.0 to 2.21.0.
+
+## [3.0.2] - 2026-10-26
+
+### Changed
+
+- Updated Microsoft.Extensions.Hosting.Abstractions, Microsoft.Extensions.Http, Microsoft.Extensions.Logging.Abstractions and Microsoft.AspNetCore.Mvc.Testing to 10.0.14.
+- Updated Microsoft.Extensions.Http.Resilience, Microsoft.Extensions.ServiceDiscovery and Microsoft.Extensions.TimeProvider.Testing to 10.11.0.
+- Updated OpenTelemetry packages to 1.20.1 and CommunityToolkit.Aspire.Hosting.Mosquitto to 13.6.1.
+- Updated test dependencies: Microsoft.NET.Test.Sdk to 18.11.0, Testcontainers to 4.16.0, WireMock.Net to 2.20.0, xunit.runner.visualstudio to 4.0.1 and xunit.v3 to 4.0.2.
+
+### Fixed
+
+- Pinned the AppHost's transitive MessagePack dependency to 2.5.307 to address GHSA-qhrr-8q5h-9q3h and the resulting package restore failure.
 
 ## [3.0.0] - 2026-10-10
 
@@ -170,6 +189,8 @@ Rewrite of the bridge. The configuration keys are unchanged; the v2 Home Assista
 - Docker and Docker Compose deployment support
 - .NET 10 cross-platform application
 
+[3.0.3]: https://github.com/davidsarkany/sbm-fizikus-to-mqtt/compare/v3.0.2...v3.0.3
+[3.0.2]: https://github.com/davidsarkany/sbm-fizikus-to-mqtt/compare/v3.0.0...v3.0.2
 [2.1.0]: https://github.com/USER/sbm-fizikus-to-mqtt/compare/v2.0.1...v2.1.0
 [2.0.1]: https://github.com/USER/sbm-fizikus-to-mqtt/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/USER/sbm-fizikus-to-mqtt/compare/v1.1.0...v2.0.0
