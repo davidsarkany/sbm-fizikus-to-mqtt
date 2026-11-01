@@ -12,6 +12,9 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
 # The -aot SDK image contains the native toolchain (clang, linker) that Native AOT compilation needs.
 FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine-aot AS build
 ARG BUILD_CONFIGURATION=Release
+# Application version reported in the Home Assistant discovery and the telemetry, e.g. 3.0.4. Set by the Docker
+# workflow from the git tag; without it the project's development version is used.
+ARG VERSION=
 WORKDIR /src
 COPY ["src/Directory.Build.props", "src/Directory.Packages.props", "./"]
 COPY ["src/SbmFizikusToMqtt.Core/SbmFizikusToMqtt.Core.csproj", "SbmFizikusToMqtt.Core/"]
@@ -26,7 +29,7 @@ COPY ["src/SbmFizikusToMqtt.Host", "SbmFizikusToMqtt.Host/"]
 # Trim and AOT warnings fail the publish (TreatWarningsAsErrors), so an unsafe dependency cannot slip in. No debug
 # symbols in the image: AOT stack traces still show method names.
 RUN dotnet publish "SbmFizikusToMqtt.Host/SbmFizikusToMqtt.Host.csproj" -c "$BUILD_CONFIGURATION" \
-    -o /app/publish --no-restore -p:DebugType=none -p:DebugSymbols=false
+    -o /app/publish --no-restore -p:DebugType=none -p:DebugSymbols=false ${VERSION:+"-p:Version=$VERSION"}
 
 FROM base AS final
 WORKDIR /app

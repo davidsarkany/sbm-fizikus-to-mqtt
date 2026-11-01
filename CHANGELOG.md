@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- The application reported version 3.0.0 in the Home Assistant discovery (`origin.sw_version`) and the telemetry (`service.version`) on every 3.0.x image, because the project version was never bumped. Images now take the version from the git tag (e.g. 3.0.4); builds of `main` report `0.0.0-dev.<commit>`, and local builds `0.0.0-dev`.
 - Thermostat devices refer to the *SBM Fizikus* device as `via_device` only when it is published, i.e. when at least one apartment sensor is enabled. With the default settings it is not, and Home Assistant logged a warning about a non-existing `via_device` for every thermostat.
 - The monthly scheduled image build now rebuilds the latest release and updates its semver tags (e.g. `:3`, which the README recommends). Before, it only updated `latest`, `main` and `sha-*`, so users on `:3` did not get base image security fixes until the next release.
 - A rejected SBM login (e.g. after a password change) no longer retries on every poll, reconnect and command, about 720 times a day. The bridge logs an error naming the `SbmConnector__Username` and `SbmConnector__Password` settings and pauses logins for 5 minutes, doubling up to 1 hour; a successful login resets the pause. Network and server errors are not paused.

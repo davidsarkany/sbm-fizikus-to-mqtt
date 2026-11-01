@@ -155,6 +155,19 @@ jobs:
           labels: |
             ${{ github.event_name == 'schedule' && format('org.opencontainers.image.revision={0}', needs.release.outputs.sha) || '' }}
 
+      # Release builds report the tag's version (v3.0.4 -> 3.0.4); other builds a development version with the
+      # commit, so the image never claims a stale release number.
+      - name: Determine the application version
+        id: version
+        env:
+          RELEASE_TAG: ${{ needs.release.outputs.tag || (github.ref_type == 'tag' && github.ref_name) || '' }}
+        run: |
+          if [ -n "$RELEASE_TAG" ]; then
+            echo "version=${RELEASE_TAG#v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=0.0.0-dev.${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+          fi
+
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
       - name: Build and push Docker image
@@ -165,6 +178,7 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: VERSION=${{ steps.version.outputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           # Add build provenance and SBOM

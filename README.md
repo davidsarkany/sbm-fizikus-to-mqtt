@@ -267,6 +267,8 @@ Native AOT allows no runtime reflection or code generation. Every build runs the
 - Settings are validated by `[OptionsValidator]` source-generated validators (`BridgeSettingsValidators.cs`), not by `ValidateDataAnnotations()`.
 - A new dependency must be trim and AOT compatible. Check with `docker build .`, because some warnings appear only at publish.
 
+The version reported in the discovery and the telemetry comes from the `VERSION` build argument, which the Docker workflow sets from the git tag (e.g. `docker build --build-arg VERSION=3.0.4 .`). Without it, the version is `0.0.0-dev`.
+
 ```powershell
 dotnet build src\SbmFizikusToMqtt.slnx
 dotnet test src\SbmFizikusToMqtt.slnx                              # all tests (integration tests need Docker)

@@ -4,7 +4,9 @@
     <PropertyGroup>
         <AssemblyName>SbmFizikusToMqtt</AssemblyName>
         <RootNamespace>SbmFizikusToMqtt.Host</RootNamespace>
-        <Version>3.0.0</Version>
+        <!-- Development fallback. Images get their version from the git tag: the Dockerfile's VERSION build argument,
+             set by the Docker workflow, overrides it (e.g. 3.0.4 for v3.0.4, 0.0.0-dev.<commit> for main). -->
+        <Version>0.0.0-dev</Version>
         <!-- Published as a Native AOT executable; the build runs the trim and AOT analyzers. -->
         <PublishAot>true</PublishAot>
     </PropertyGroup>

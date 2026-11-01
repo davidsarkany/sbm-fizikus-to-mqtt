@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry;
 using OpenTelemetry.Trace;
+using SbmFizikusToMqtt.Host.Configuration;
 using SbmFizikusToMqtt.IntegrationTests.TestSupport;
 
 namespace SbmFizikusToMqtt.IntegrationTests;
@@ -27,7 +28,7 @@ public sealed class TelemetryConfigurationTests(MosquittoBroker broker) : IDispo
 
         // Assert
         Assert.Equal("sbm-fizikus-to-mqtt", attributes["service.name"]);
-        Assert.Equal("3.0.0", attributes["service.version"]);
+        Assert.Equal(HostVersion.Current, attributes["service.version"]);
     }
 
     [Theory]
