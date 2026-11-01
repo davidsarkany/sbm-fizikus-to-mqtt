@@ -48,6 +48,12 @@ internal sealed class DiscoveryBuilder(MqttTopics topics, DiscoveryOptions optio
 
     private string ApartmentDeviceIdentifier => $"{topics.NodeId}_apartment";
 
+    /// <summary>
+    ///     The apartment device exists in Home Assistant only with at least one enabled sensor; without one its config
+    ///     is cleared (see <see cref="ToDeviceMessage" />).
+    /// </summary>
+    private bool PublishesApartmentDevice => ApartmentSensors.Any(x => x.IsEnabled(options));
+
     public IReadOnlyList<DiscoveryDevice> Build(Apartment apartment)
     {
         var devices = new List<DiscoveryDevice>(apartment.Thermostats.Count + 1) { BuildApartmentDevice() };
@@ -106,9 +112,12 @@ internal sealed class DiscoveryBuilder(MqttTopics topics, DiscoveryOptions optio
             ["identifiers"] = new JsonArray($"{topics.NodeId}_thermostat_{thermostat.Id}"),
             ["name"] = thermostat.Name ?? $"Thermostat {thermostat.Id}",
             ["manufacturer"] = Manufacturer,
-            ["model"] = "Fizikus thermostat",
-            ["via_device"] = ApartmentDeviceIdentifier
+            ["model"] = "Fizikus thermostat"
         };
+
+        // A via_device that does not exist makes Home Assistant log a deprecation warning for every thermostat.
+        if (PublishesApartmentDevice)
+            device["via_device"] = ApartmentDeviceIdentifier;
 
         var (components, disabled) = BuildSensors(ThermostatSensors, topics.Device(thermostat.Id),
             suffix => $"{UniqueIdPrefix}-{thermostat.Id}_{suffix}");

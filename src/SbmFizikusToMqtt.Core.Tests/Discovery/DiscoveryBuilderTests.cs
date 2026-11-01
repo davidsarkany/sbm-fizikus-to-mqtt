@@ -46,6 +46,31 @@ public sealed class DiscoveryBuilderTests
         Snapshot.Match(MqttMessageFormatter.Format(messages));
     }
 
+    [Theory]
+    [InlineData(false, false, false, false)]
+    [InlineData(true, false, false, true)]
+    [InlineData(false, true, false, true)]
+    [InlineData(false, false, true, true)]
+    public void Build_ApartmentSensors_LinksThermostatsOnlyToAnExistingApartmentDevice(bool systemMode,
+        bool outdoorTemperature, bool outdoorHumidity, bool expectViaDevice)
+    {
+        // Arrange
+        var sut = new DiscoveryBuilder(TestApartments.Topics, new DiscoveryOptions
+        {
+            ApartmentSystemModeEnabled = systemMode,
+            ApartmentOutdoorTemperatureEnabled = outdoorTemperature,
+            ApartmentOutdoorHumidityEnabled = outdoorHumidity
+        });
+
+        // Act
+        var devices = sut.Build(TestApartments.Create(thermostats: TestApartments.LivingRoom()));
+
+        // Assert
+        Assert.Equal(expectViaDevice, devices[0].Components.Count > 0);
+        Assert.Equal(expectViaDevice ? "sbm_fizikus_apartment" : null,
+            devices[1].Device["via_device"]?.GetValue<string>());
+    }
+
     [Fact]
     public void Build_AnyOptions_KeepsV2UniqueIds()
     {

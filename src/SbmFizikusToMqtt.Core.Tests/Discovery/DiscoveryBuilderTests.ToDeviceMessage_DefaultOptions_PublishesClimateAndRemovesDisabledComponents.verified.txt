@@ -9,8 +9,7 @@
     ],
     "name": "living-room",
     "manufacturer": "SBM-Verting",
-    "model": "Fizikus thermostat",
-    "via_device": "sbm_fizikus_apartment"
+    "model": "Fizikus thermostat"
   },
   "origin": {
     "name": "sbm-fizikus-to-mqtt",
