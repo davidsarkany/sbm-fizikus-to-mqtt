@@ -11,7 +11,7 @@ The bridge logs in to the SBM Fizikus cloud, polls the apartment and its thermos
 - **Thermostat control**: Home Assistant climate entities for every thermostat. The target temperature can be set in 0.5 °C steps between 5 and 35 °C.
 - **Sensors**: temperature, target temperature, humidity and operating state per thermostat. Central system mode, outdoor temperature and outdoor humidity for the building. All of them are opt-in.
 - **Retained state**: Home Assistant and other subscribers see the current values immediately, without waiting for the next poll.
-- **Accurate availability**: entities are unavailable when the bridge is down *or* SBM reports the apartment as disconnected.
+- **Accurate availability**: entities are unavailable when the bridge is down, when SBM reports the apartment as disconnected, *or* when SBM could not be refreshed for three polling intervals, so Home Assistant never shows frozen values as current.
 - **Self-healing**: lost MQTT connections are re-established automatically, and transient SBM API errors are retried.
 - **Health checks**: `/health/live` and `/health/ready` endpoints, plus a Docker `HEALTHCHECK`.
 - **Small footprint**: compiled with Native AOT. The image has no .NET runtime: it is about 48 MB (a JIT build: about 180 MB), and the bridge uses about 20 MB of memory.
@@ -119,7 +119,7 @@ To stay on v2, pin the image tag `:2`.
 | Topic | Direction | Retained | Content |
 |---|---|---|---|
 | `{SbmTopic}/bridge/state` | publish | yes | `{"state": "online"}` while the bridge runs, `{"state": "offline"}` after it stops (also the last will) |
-| `{SbmTopic}/apartment_info` | publish | yes | `system_mode`, `last_update`, `connected`, optional `outdoor_temperature` and `outdoor_humidity` |
+| `{SbmTopic}/apartment_info` | publish | yes | `system_mode`, `last_update`, `connected`, optional `outdoor_temperature` and `outdoor_humidity`. `connected` is also `false` while SBM cannot be refreshed (see [Resilience](#resilience)) |
 | `{SbmTopic}/devices/{id}` | publish | yes | `id`, `name`, `temperature`, `humidity`, `target_temperature`, `system_mode` (`heating`, `cooling`, `unknown` or `idle`), `last_update` |
 | `{HomeAssistantTopic}/device/{SbmTopic}_thermostat_{id}/config` | publish | yes | Discovery config of a thermostat |
 | `{HomeAssistantTopic}/device/{SbmTopic}_apartment/config` | publish | yes | Discovery config of the building sensors |
@@ -249,7 +249,7 @@ Without Alloy, use the values from the OpenTelemetry tile:
 ## Resilience
 
 - **MQTT:** the bridge reconnects with exponential backoff (1 s up to 60 s). Rejected subscriptions are logged and retried; the bridge announces itself as online only after both subscriptions are accepted. After every reconnect it republishes its state and discovery, because a broker without persistence loses retained messages.
-- **SBM:** transient errors are retried. A rejected session triggers one fresh login. A failed poll is logged and retried on the next one.
+- **SBM:** transient errors are retried. A rejected session triggers one fresh login. A failed poll is logged and retried on the next one. When no refresh has succeeded for three polling intervals (the same limit as `/health/ready`), the bridge republishes `apartment_info` with the last known values and `connected: false`, so the entities become unavailable instead of showing frozen values; the next successful refresh makes them available again. Without any data since the start, the payload is only `{"system_mode":"unknown","connected":false}`.
 - **Shutdown:** the bridge cancels and waits for both its polling and command-processing loops before stopping the MQTT connection, within the host's shutdown timeout.
 
 ## Development
@@ -327,6 +327,6 @@ The dependencies point inwards: Host → Infrastructure → Core. Core has no tr
 
 ## Troubleshooting
 
-- **Entities unavailable:** check `{SbmTopic}/bridge/state`, and the `connected` field of `{SbmTopic}/apartment_info`. `false` means SBM itself reports the relay module or the thermostats as unreachable.
+- **Entities unavailable:** check `{SbmTopic}/bridge/state`, and the `connected` field of `{SbmTopic}/apartment_info`. `false` means SBM itself reports the relay module or the thermostats as unreachable, or the bridge could not refresh SBM for three polling intervals (the log then says *No successful SBM refresh*).
 - **No data:** check `/health/ready` and the logs. SBM API errors include the response returned by the API, except login responses, whose bodies are redacted to protect tokens.
 - **Entities not discovered:** make sure Home Assistant's MQTT integration uses the same discovery prefix as `PublisherConfiguration__HomeAssistantTopic`.

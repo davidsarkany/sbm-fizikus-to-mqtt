@@ -24,7 +24,7 @@ public sealed class BridgeProcessorTests
         _status = new BridgeStatus(_timeProvider);
         _sut = new BridgeProcessor(_sbm, _mqtt, _status, TestApartments.Topics,
             new DiscoveryOptions { ThermostatTemperatureEnabled = true, SoftwareVersion = "3.0.0-test" },
-            _timeProvider, _logger);
+            TestApartments.Availability, _timeProvider, _logger);
     }
 
     [Fact]
@@ -343,6 +343,133 @@ public sealed class BridgeProcessorTests
         // Act & Assert
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
             _sut.HandleAsync(new PollRequested(), cts.Token));
+    }
+
+    [Fact]
+    public async Task HandleAsync_FailuresBeyondStaleAfter_PublishesLastStateAsDisconnected()
+    {
+        // Arrange
+        await _sut.HandleAsync(new MqttConnected(), CancellationToken.None);
+        _mqtt.Published.Clear();
+        _sbm.Failure = new HttpRequestException("SBM unavailable");
+        _timeProvider.Advance(TimeSpan.FromMinutes(6));
+
+        // Act
+        await _sut.HandleAsync(new PollRequested(), CancellationToken.None);
+
+        // Assert
+        var message = Assert.Single(_mqtt.Published);
+        Assert.Equal(("sbm_fizikus/apartment_info", true), (message.Topic, message.Retain));
+        Assert.Equal(
+            "{\"system_mode\":\"heating\",\"last_update\":\"2026-10-10T12:45:11+00:00\",\"connected\":false," +
+            "\"outdoor_temperature\":19.9,\"outdoor_humidity\":49.9}", message.Payload);
+        Assert.Contains(_logger.Entries, x => x.Level == LogLevel.Warning && x.Message.StartsWith("No successful SBM", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task HandleAsync_FailureWithinStaleAfter_DoesNotMarkUnavailable()
+    {
+        // Arrange
+        await _sut.HandleAsync(new MqttConnected(), CancellationToken.None);
+        _mqtt.Published.Clear();
+        _sbm.Failure = new HttpRequestException("SBM unavailable");
+        _timeProvider.Advance(TimeSpan.FromMinutes(5));
+
+        // Act
+        await _sut.HandleAsync(new PollRequested(), CancellationToken.None);
+
+        // Assert
+        Assert.Empty(_mqtt.Published);
+    }
+
+    [Fact]
+    public async Task HandleAsync_RepeatedFailuresWhileStale_PublishesUnavailableOnce()
+    {
+        // Arrange
+        await _sut.HandleAsync(new MqttConnected(), CancellationToken.None);
+        _mqtt.Published.Clear();
+        _sbm.Failure = new HttpRequestException("SBM unavailable");
+        _timeProvider.Advance(TimeSpan.FromMinutes(6));
+        await _sut.HandleAsync(new PollRequested(), CancellationToken.None);
+
+        // Act
+        _timeProvider.Advance(TimeSpan.FromMinutes(2));
+        await _sut.HandleAsync(new PollRequested(), CancellationToken.None);
+
+        // Assert
+        Assert.Single(_mqtt.Published);
+    }
+
+    [Fact]
+    public async Task HandleAsync_SuccessAfterStale_PublishesConnectedStateAgain()
+    {
+        // Arrange
+        await _sut.HandleAsync(new MqttConnected(), CancellationToken.None);
+        _sbm.Failure = new HttpRequestException("SBM unavailable");
+        _timeProvider.Advance(TimeSpan.FromMinutes(6));
+        await _sut.HandleAsync(new PollRequested(), CancellationToken.None);
+        _mqtt.Published.Clear();
+        _sbm.Failure = null;
+
+        // Act
+        await _sut.HandleAsync(new PollRequested(), CancellationToken.None);
+
+        // Assert
+        var info = Assert.Single(_mqtt.Published, x => x.Topic == "sbm_fizikus/apartment_info");
+        Assert.Contains("\"connected\":true", info.Payload);
+        Assert.Contains(_logger.Entries, x => x.Message == "SBM refresh succeeded again, entities are available");
+    }
+
+    [Fact]
+    public async Task HandleAsync_NoSuccessSinceStart_PublishesMinimalDisconnectedState()
+    {
+        // Arrange
+        _sbm.Failure = new HttpRequestException("SBM unavailable");
+        _timeProvider.Advance(TimeSpan.FromMinutes(6));
+
+        // Act
+        await _sut.HandleAsync(new MqttConnected(), CancellationToken.None);
+
+        // Assert
+        var message = Assert.Single(_mqtt.Published);
+        Assert.Equal("{\"system_mode\":\"unknown\",\"connected\":false}", message.Payload);
+    }
+
+    [Fact]
+    public async Task HandleAsync_ReconnectWhileStale_PublishesUnavailableAgain()
+    {
+        // Arrange: a broker without persistence may have lost the retained stale marker.
+        await _sut.HandleAsync(new MqttConnected(), CancellationToken.None);
+        _sbm.Failure = new HttpRequestException("SBM unavailable");
+        _timeProvider.Advance(TimeSpan.FromMinutes(6));
+        await _sut.HandleAsync(new PollRequested(), CancellationToken.None);
+        _mqtt.Published.Clear();
+
+        // Act
+        await _sut.HandleAsync(new MqttConnected(), CancellationToken.None);
+
+        // Assert
+        var message = Assert.Single(_mqtt.Published);
+        Assert.Contains("\"connected\":false", message.Payload);
+    }
+
+    [Fact]
+    public async Task HandleAsync_StaleMarkerPublishFails_RetriesOnNextFailure()
+    {
+        // Arrange
+        await _sut.HandleAsync(new MqttConnected(), CancellationToken.None);
+        _mqtt.Published.Clear();
+        _sbm.Failure = new HttpRequestException("SBM unavailable");
+        _timeProvider.Advance(TimeSpan.FromMinutes(6));
+        _mqtt.Failure = new InvalidOperationException("MQTT is not connected");
+        await _sut.HandleAsync(new PollRequested(), CancellationToken.None);
+        _mqtt.Failure = null;
+
+        // Act
+        await _sut.HandleAsync(new PollRequested(), CancellationToken.None);
+
+        // Assert
+        Assert.Single(_mqtt.Published);
     }
 
     /// <summary>Empty retained messages, except the apartment config, which is empty when it has no sensors.</summary>

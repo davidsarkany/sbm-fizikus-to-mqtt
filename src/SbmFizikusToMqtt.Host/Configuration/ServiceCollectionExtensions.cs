@@ -68,6 +68,16 @@ public static class ServiceCollectionExtensions
             };
         });
 
+        services.AddSingleton(serviceProvider =>
+        {
+            var settings = serviceProvider.GetRequiredService<IOptions<SbmConnectorSettings>>().Value;
+            return new AvailabilityOptions
+            {
+                StaleAfter = TimeSpan.FromSeconds(
+                    (long)settings.PollingIntervalSeconds * BridgeReadinessCheck.MaxMissedPolls)
+            };
+        });
+
         services.TryAddSingleton(TimeProvider.System);
         services.AddSingleton<BridgeStatus>();
         services.AddSingleton<BridgeCommandQueue>();

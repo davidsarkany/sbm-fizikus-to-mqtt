@@ -41,6 +41,28 @@ internal sealed class StatePayloadMapper(MqttTopics topics)
         return messages;
     }
 
+    /// <summary>
+    ///     The <c>apartment_info</c> message published while SBM cannot be refreshed: the last known values with
+    ///     <c>connected: false</c>, which makes every entity unavailable. Without any data since the start, only the
+    ///     unknown mode and the connection flag are sent.
+    /// </summary>
+    public MqttMessage MapStaleApartmentInfo(Apartment? lastApartment)
+    {
+        var payload = lastApartment is null
+            ? new ApartmentInfoPayload { SystemMode = SystemMode.Unknown.ToWireValue(), Connected = false }
+            : new ApartmentInfoPayload
+            {
+                SystemMode = lastApartment.SystemMode.ToWireValue(),
+                LastUpdate = lastApartment.LastUpdate,
+                Connected = false,
+                OutdoorTemperature = lastApartment.OutdoorTemperature,
+                OutdoorHumidity = lastApartment.OutdoorHumidity
+            };
+
+        return CreateMessage(topics.ApartmentInfo,
+            JsonSerializer.Serialize(payload, StatePayloadJsonContext.Default.ApartmentInfoPayload));
+    }
+
     private static MqttMessage CreateMessage(string topic, string payload)
     {
         return new MqttMessage { Topic = topic, Payload = payload, Retain = true };

@@ -15,7 +15,7 @@ public sealed class BridgeTelemetryTests
     public BridgeTelemetryTests()
     {
         _sut = new BridgeProcessor(_sbm, _mqtt, new BridgeStatus(TimeProvider.System), TestApartments.Topics,
-            new DiscoveryOptions(), TimeProvider.System, NullLogger<BridgeProcessor>.Instance);
+            new DiscoveryOptions(), TestApartments.Availability, TimeProvider.System, NullLogger<BridgeProcessor>.Instance);
     }
 
     [Fact]

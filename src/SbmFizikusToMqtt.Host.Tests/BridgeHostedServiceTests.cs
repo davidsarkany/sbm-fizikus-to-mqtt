@@ -21,7 +21,8 @@ public sealed class BridgeHostedServiceTests
         var status = new BridgeStatus(TimeProvider.System);
         var topics = new MqttTopics(new TopicOptions { SbmTopic = "sbm_fizikus", HomeAssistantTopic = "homeassistant" });
         var processor = new BridgeProcessor(sbm, new NoOpMqttGateway(), status, topics,
-            new DiscoveryOptions { SoftwareVersion = "test" }, TimeProvider.System,
+            new DiscoveryOptions { SoftwareVersion = "test" },
+            new AvailabilityOptions { StaleAfter = TimeSpan.FromMinutes(6) }, TimeProvider.System,
             NullLogger<BridgeProcessor>.Instance);
         using var sut = new BridgeHostedService(processor, queue, status,
             Options.Create(new SbmConnectorSettings()), TimeProvider.System,
@@ -59,7 +60,8 @@ public sealed class BridgeHostedServiceTests
         var topics = new MqttTopics(new TopicOptions { SbmTopic = "sbm_fizikus", HomeAssistantTopic = "homeassistant" });
         // BridgeProcessor catches every failure, so a throwing logger is the way to make it break.
         var processor = new BridgeProcessor(new FailingSbmGateway(), new NoOpMqttGateway(), status, topics,
-            new DiscoveryOptions { SoftwareVersion = "test" }, TimeProvider.System,
+            new DiscoveryOptions { SoftwareVersion = "test" },
+            new AvailabilityOptions { StaleAfter = TimeSpan.FromMinutes(6) }, TimeProvider.System,
             new ThrowingLogger<BridgeProcessor>());
         using var sut = new BridgeHostedService(processor, queue, status,
             Options.Create(new SbmConnectorSettings()), TimeProvider.System,

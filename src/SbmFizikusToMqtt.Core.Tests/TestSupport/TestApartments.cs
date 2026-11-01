@@ -15,6 +15,9 @@ internal static class TestApartments
         HomeAssistantTopic = "homeassistant"
     });
 
+    /// <summary>Three missed polls of two minutes, as the host configures it by default.</summary>
+    public static readonly AvailabilityOptions Availability = new() { StaleAfter = TimeSpan.FromMinutes(6) };
+
     public static Apartment Create(
         bool connected = true,
         bool withOutdoorData = true,

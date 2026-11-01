@@ -12,7 +12,9 @@ internal sealed class BridgeReadinessCheck(
     TimeProvider timeProvider) : IHealthCheck
 {
     public const string ReadyTag = "ready";
-    private const int MaxMissedPolls = 3;
+
+    /// <summary>Missed polls tolerated before the bridge is not ready and its entities are shown unavailable.</summary>
+    public const int MaxMissedPolls = 3;
 
     public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context,
         CancellationToken cancellationToken = default)
@@ -24,7 +26,7 @@ internal sealed class BridgeReadinessCheck(
         if (lastPoll is null)
             return Task.FromResult(HealthCheckResult.Unhealthy("SBM has not been polled successfully yet"));
 
-        var maxAge = TimeSpan.FromSeconds(settings.Value.PollingIntervalSeconds * MaxMissedPolls);
+        var maxAge = TimeSpan.FromSeconds((long)settings.Value.PollingIntervalSeconds * MaxMissedPolls);
         var age = timeProvider.GetUtcNow() - lastPoll.Value;
         return Task.FromResult(age <= maxAge
             ? HealthCheckResult.Healthy($"Last successful SBM poll {age.TotalSeconds:0} s ago")

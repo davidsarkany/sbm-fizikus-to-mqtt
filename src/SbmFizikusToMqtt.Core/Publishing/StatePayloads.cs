@@ -6,9 +6,12 @@ internal sealed record ApartmentInfoPayload
 {
     [JsonPropertyName("system_mode")] public required string SystemMode { get; init; }
 
-    [JsonPropertyName("last_update")] public required DateTimeOffset LastUpdate { get; init; }
+    /// <summary>Null only in the stale payload published before any successful refresh.</summary>
+    [JsonPropertyName("last_update")] public DateTimeOffset? LastUpdate { get; init; }
 
-    /// <summary>SBM connectivity; feeds the entities' second availability topic.</summary>
+    /// <summary>
+    ///     SBM connectivity, false also while SBM cannot be refreshed; feeds the entities' second availability topic.
+    /// </summary>
     [JsonPropertyName("connected")] public required bool Connected { get; init; }
 
     [JsonPropertyName("outdoor_temperature")] public double? OutdoorTemperature { get; init; }

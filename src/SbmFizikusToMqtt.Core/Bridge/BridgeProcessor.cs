@@ -17,6 +17,7 @@ public sealed class BridgeProcessor
     private const string HomeAssistantOnlinePayload = "online";
 
     private readonly DiscoveryBuilder _discoveryBuilder;
+    private readonly AvailabilityOptions _availabilityOptions;
     private readonly ILogger<BridgeProcessor> _logger;
     private readonly IMqttGateway _mqttGateway;
     private readonly ISbmGateway _sbmGateway;
@@ -29,6 +30,8 @@ public sealed class BridgeProcessor
     private Apartment? _lastApartment;
     private string? _publishedDiscoveryKey;
     private HashSet<int> _publishedThermostatIds = [];
+    private DateTimeOffset _lastSuccessfulRefresh;
+    private bool _stalePublished;
 
     public BridgeProcessor(
         ISbmGateway sbmGateway,
@@ -36,6 +39,7 @@ public sealed class BridgeProcessor
         BridgeStatus status,
         MqttTopics topics,
         DiscoveryOptions discoveryOptions,
+        AvailabilityOptions availabilityOptions,
         TimeProvider timeProvider,
         ILogger<BridgeProcessor> logger)
     {
@@ -43,8 +47,11 @@ public sealed class BridgeProcessor
         _mqttGateway = mqttGateway;
         _status = status;
         _topics = topics;
+        _availabilityOptions = availabilityOptions;
         _timeProvider = timeProvider;
         _logger = logger;
+        // Staleness counts from the start, so a retained state left by a previous run is also replaced.
+        _lastSuccessfulRefresh = timeProvider.GetUtcNow();
         _statePayloadMapper = new StatePayloadMapper(topics);
         _discoveryBuilder = new DiscoveryBuilder(topics, discoveryOptions);
     }
@@ -66,8 +73,10 @@ public sealed class BridgeProcessor
                     await RefreshAsync(commandName, cancellationToken);
                     break;
                 case MqttConnected:
-                    // Retained discovery may have been lost (e.g. a broker without persistence restarted).
+                    // Retained discovery may have been lost (e.g. a broker without persistence restarted), and so
+                    // may the stale marker.
                     _discoveryPending = true;
+                    _stalePublished = false;
                     await RefreshAsync(commandName, cancellationToken);
                     break;
                 case MqttMessageReceived message:
@@ -83,6 +92,33 @@ public sealed class BridgeProcessor
         {
             BridgeTelemetry.RecordFailure(activity, ex);
             _logger.LogError(ex, "Failed to handle {Command}", command.GetType().Name);
+            await PublishStaleIfNeededAsync(cancellationToken);
+        }
+    }
+
+    /// <summary>
+    ///     After <see cref="AvailabilityOptions.StaleAfter" /> without a successful refresh (SBM outage, rejected
+    ///     credentials, unreadable responses), republishes <c>apartment_info</c> with <c>connected: false</c>, so Home
+    ///     Assistant shows the entities as unavailable instead of frozen values. The next successful refresh restores it.
+    /// </summary>
+    private async Task PublishStaleIfNeededAsync(CancellationToken cancellationToken)
+    {
+        var sinceLastRefresh = _timeProvider.GetUtcNow() - _lastSuccessfulRefresh;
+        if (_stalePublished || sinceLastRefresh < _availabilityOptions.StaleAfter)
+            return;
+
+        try
+        {
+            await _mqttGateway.PublishAsync(_statePayloadMapper.MapStaleApartmentInfo(_lastApartment),
+                cancellationToken);
+            _stalePublished = true;
+            _logger.LogWarning("No successful SBM refresh for {StaleMinutes} min, marked the entities as unavailable",
+                (long)sinceLastRefresh.TotalMinutes);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            // Typically MQTT is down as well; the next failed command retries.
+            _logger.LogWarning(ex, "Failed to mark the entities as unavailable");
         }
     }
 
@@ -162,6 +198,13 @@ public sealed class BridgeProcessor
             await _mqttGateway.PublishAsync(message, cancellationToken);
 
         _status.MarkPollSucceeded();
+        _lastSuccessfulRefresh = _timeProvider.GetUtcNow();
+        if (_stalePublished)
+        {
+            _stalePublished = false;
+            _logger.LogInformation("SBM refresh succeeded again, entities are available");
+        }
+
         LogRefresh(trigger, apartment);
 
         var discoveryKey = CreateDiscoveryKey(apartment);

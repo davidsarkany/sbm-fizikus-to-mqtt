@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using SbmFizikusToMqtt.Core.Options;
 using SbmFizikusToMqtt.Host.Configuration;
 
 namespace SbmFizikusToMqtt.Host.Tests.Configuration;
@@ -81,6 +82,24 @@ public sealed class BridgeSettingsTests
         Assert.Equal((1883, "sbm-fizikus-mqtt"), (mqtt.Port, mqtt.ClientId));
         Assert.Equal(("sbm_fizikus", "homeassistant", true),
             (publisher.SbmTopic, publisher.HomeAssistantTopic, publisher.ClimateDiscoveryEnabled));
+    }
+
+    [Theory]
+    [InlineData("30", 90)]
+    [InlineData("2147483647", 6442450941)]
+    public void AddBridge_PollingInterval_MarksStateStaleAfterThreeMissedPolls(string interval, long expectedSeconds)
+    {
+        // Arrange
+        using var provider = BuildProvider(new Dictionary<string, string?>
+        {
+            ["SbmConnector:PollingIntervalSeconds"] = interval
+        });
+
+        // Act
+        var options = provider.GetRequiredService<AvailabilityOptions>();
+
+        // Assert
+        Assert.Equal(TimeSpan.FromSeconds(expectedSeconds), options.StaleAfter);
     }
 
     [Theory]

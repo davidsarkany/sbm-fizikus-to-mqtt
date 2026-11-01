@@ -5,6 +5,12 @@ All notable changes to SBM Fizikus to MQTT will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- Entities no longer show frozen values as current while SBM cannot be refreshed (cloud outage, changed password, unreadable responses). After three polling intervals without a successful refresh, `apartment_info` is republished with `connected: false`, which makes the entities unavailable; the next successful refresh restores them.
+
 ## [3.0.4] - 2026-10-30
 
 ### Fixed
