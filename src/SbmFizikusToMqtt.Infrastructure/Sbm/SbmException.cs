@@ -26,6 +26,12 @@ public sealed class SbmInvalidResponseException : SbmException
     }
 }
 
+/// <summary>
+///     The login is paused after SBM rejected the credentials, so a wrong password does not cause a failed login on
+///     every poll. No request was sent.
+/// </summary>
+public sealed class SbmLoginPausedException(string message) : SbmException(message);
+
 /// <summary>SBM answered with a non-success HTTP status code.</summary>
 public sealed class SbmApiException(HttpStatusCode statusCode, string message) : SbmException(message)
 {

@@ -150,6 +150,82 @@ public sealed class SbmSessionTests
     }
 
     [Fact]
+    public async Task GetApartmentAsync_LoginRejected_PausesLoginUntilBackoffElapses()
+    {
+        // Arrange
+        var host = new SbmTestHost(outdoorWeatherEnabled: false);
+        host.Handler.Respond("get_jw_token", HttpStatusCode.Unauthorized, "{\"message\":\"Invalid credentials\"}");
+        await Assert.ThrowsAsync<SbmApiException>(() => host.Session.GetApartmentAsync(CancellationToken.None));
+
+        // Act
+        var paused = await Record.ExceptionAsync(() => host.Session.GetApartmentAsync(CancellationToken.None));
+        host.TimeProvider.Advance(SbmSession.InitialLoginPause);
+        var apartment = await host.Session.GetApartmentAsync(CancellationToken.None);
+
+        // Assert
+        Assert.IsType<SbmLoginPausedException>(paused);
+        Assert.Contains("check SbmConnector__Username and SbmConnector__Password", paused.Message,
+            StringComparison.Ordinal);
+        Assert.Equal(4, apartment.Thermostats.Count);
+        Assert.Equal(2, host.Handler.Operations.Count(x => x == "get_jw_token"));
+    }
+
+    [Fact]
+    public async Task GetApartmentAsync_LoginRejectedAgain_DoublesThePause()
+    {
+        // Arrange
+        var host = new SbmTestHost(outdoorWeatherEnabled: false);
+        host.Handler
+            .Respond("get_jw_token", HttpStatusCode.Forbidden, "no")
+            .Respond("get_jw_token", HttpStatusCode.Forbidden, "no");
+        await Assert.ThrowsAsync<SbmApiException>(() => host.Session.GetApartmentAsync(CancellationToken.None));
+        host.TimeProvider.Advance(SbmSession.InitialLoginPause);
+        await Assert.ThrowsAsync<SbmApiException>(() => host.Session.GetApartmentAsync(CancellationToken.None));
+
+        // Act
+        host.TimeProvider.Advance(SbmSession.InitialLoginPause);
+        var stillPaused = await Record.ExceptionAsync(() => host.Session.GetApartmentAsync(CancellationToken.None));
+        host.TimeProvider.Advance(SbmSession.InitialLoginPause);
+        await host.Session.GetApartmentAsync(CancellationToken.None);
+
+        // Assert
+        Assert.IsType<SbmLoginPausedException>(stillPaused);
+        Assert.Equal(3, host.Handler.Operations.Count(x => x == "get_jw_token"));
+    }
+
+    [Fact]
+    public async Task GetApartmentAsync_LoginWithoutToken_PausesLogin()
+    {
+        // Arrange
+        var host = new SbmTestHost(outdoorWeatherEnabled: false);
+        host.Handler.Respond("get_jw_token", HttpStatusCode.OK, "{\"message\":\"Wrong password\"}");
+        await Assert.ThrowsAsync<SbmInvalidResponseException>(() =>
+            host.Session.GetApartmentAsync(CancellationToken.None));
+
+        // Act & Assert
+        await Assert.ThrowsAsync<SbmLoginPausedException>(() => host.Session.GetApartmentAsync(CancellationToken.None));
+        Assert.Equal(1, host.Handler.Operations.Count(x => x == "get_jw_token"));
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    [InlineData(HttpStatusCode.TooManyRequests)]
+    public async Task GetApartmentAsync_LoginFailsTransiently_RetriesOnNextCall(HttpStatusCode status)
+    {
+        // Arrange
+        var host = new SbmTestHost(outdoorWeatherEnabled: false);
+        host.Handler.Respond("get_jw_token", status, "busy");
+        await Assert.ThrowsAsync<SbmApiException>(() => host.Session.GetApartmentAsync(CancellationToken.None));
+
+        // Act
+        var apartment = await host.Session.GetApartmentAsync(CancellationToken.None);
+
+        // Assert
+        Assert.Equal(4, apartment.Thermostats.Count);
+        Assert.Equal(2, host.Handler.Operations.Count(x => x == "get_jw_token"));
+    }
+
+    [Fact]
     public async Task SetTargetTemperatureAsync_ValidRequest_SendsSetpointWithToken()
     {
         // Arrange
