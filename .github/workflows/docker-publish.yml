@@ -148,8 +148,12 @@ jobs:
         uses: docker/metadata-action@v6.2.0
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          # latest is set explicitly: the default (latest=auto) adds it to every semver tag, so a release rebuild would
+          # move latest from main back to the release.
+          flavor: |
+            latest=false
           tags: |
-            type=raw,value=latest,enable=${{ needs.release.outputs.rebuild != 'true' && github.ref == 'refs/heads/main' }}
+            type=raw,value=latest,enable=${{ needs.release.outputs.rebuild != 'true' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) }}
             type=ref,event=branch,enable=${{ needs.release.outputs.rebuild != 'true' }}
             type=ref,event=pr
             type=semver,pattern={{version}}
