@@ -45,7 +45,6 @@ internal static class TestApartments
             Temperature = 24.8,
             Humidity = 60,
             TargetTemperature = 23,
-            DewPoint = 15.9,
             Active = active,
             LastUpdate = LastUpdate.AddSeconds(29)
         };
@@ -60,7 +59,6 @@ internal static class TestApartments
             Temperature = 24.6,
             Humidity = 55,
             TargetTemperature = 22.5,
-            DewPoint = 15.9,
             Active = false,
             LastUpdate = LastUpdate.AddSeconds(29)
         };

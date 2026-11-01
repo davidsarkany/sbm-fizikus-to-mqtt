@@ -227,12 +227,13 @@ public sealed class BridgeProcessor
         _logger.LogInformation(
             "Refreshed state ({Trigger}): {ThermostatCount} thermostats, {ActiveCount} calling, {SystemMode}, " +
             "SBM {SbmConnection}, data age {DataAgeSeconds} s",
+            // DataAgeSeconds is empty when SBM does not report its last update.
             trigger,
             apartment.Thermostats.Count,
             apartment.Thermostats.Count(x => x.Active),
             apartment.SystemMode.ToWireValue(),
             apartment.IsConnected ? "connected" : "disconnected",
-            (long)dataAge.TotalSeconds);
+            (long?)dataAge?.TotalSeconds);
     }
 
     /// <summary>

@@ -28,8 +28,7 @@ internal static class SbmApartmentDataResponseExtensions
                 Temperature = x.MeasuredTemperature,
                 Humidity = x.MeasuredHumidity,
                 TargetTemperature = x.TemperatureSetpoint,
-                DewPoint = x.DewPoint,
-                Active = x.Active,
+                Active = x.Active ?? false,
                 LastUpdate = x.LastStateUpdate
             }).ToList()
         };

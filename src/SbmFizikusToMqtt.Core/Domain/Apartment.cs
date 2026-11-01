@@ -4,7 +4,8 @@ public sealed record Apartment
 {
     public required SystemMode SystemMode { get; init; }
     public required IReadOnlyList<Thermostat> Thermostats { get; init; }
-    public required DateTimeOffset LastUpdate { get; init; }
+    /// <summary>Null when SBM does not report it.</summary>
+    public required DateTimeOffset? LastUpdate { get; init; }
     public required bool RelayConnectionActive { get; init; }
     public required bool ThermostatsConnectionActive { get; init; }
     public double? OutdoorTemperature { get; init; }

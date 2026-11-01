@@ -120,7 +120,7 @@ To stay on v2, pin the image tag `:2`.
 |---|---|---|---|
 | `{SbmTopic}/bridge/state` | publish | yes | `{"state": "online"}` while the bridge runs, `{"state": "offline"}` after it stops (also the last will) |
 | `{SbmTopic}/apartment_info` | publish | yes | `system_mode`, `last_update`, `connected`, optional `outdoor_temperature` and `outdoor_humidity`. `connected` is also `false` while SBM cannot be refreshed (see [Resilience](#resilience)) |
-| `{SbmTopic}/devices/{id}` | publish | yes | `id`, `name`, `temperature`, `humidity`, `target_temperature`, `system_mode` (`heating`, `cooling`, `unknown` or `idle`), `last_update` |
+| `{SbmTopic}/devices/{id}` | publish | yes | `id`, `name`, `temperature`, `humidity`, `target_temperature`, `system_mode` (`heating`, `cooling`, `unknown` or `idle`), `last_update`. Values SBM does not report (e.g. a thermostat that has not reported yet) are `null` and show as unknown in Home Assistant |
 | `{HomeAssistantTopic}/device/{SbmTopic}_thermostat_{id}/config` | publish | yes | Discovery config of a thermostat |
 | `{HomeAssistantTopic}/device/{SbmTopic}_apartment/config` | publish | yes | Discovery config of the building sensors |
 | `{SbmTopic}/devices/{id}/set` | subscribe | | `{"value": 21.5}` or `{"id": 1763, "value": 21.5}` |

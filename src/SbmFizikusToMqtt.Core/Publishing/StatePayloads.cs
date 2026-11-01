@@ -6,7 +6,7 @@ internal sealed record ApartmentInfoPayload
 {
     [JsonPropertyName("system_mode")] public required string SystemMode { get; init; }
 
-    /// <summary>Null only in the stale payload published before any successful refresh.</summary>
+    /// <summary>Omitted when SBM does not report it, and in the stale payload before any successful refresh.</summary>
     [JsonPropertyName("last_update")] public DateTimeOffset? LastUpdate { get; init; }
 
     /// <summary>
@@ -27,16 +27,27 @@ internal sealed record DevicePayload
     [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
     public required string? Name { get; init; }
 
-    [JsonPropertyName("temperature")] public required double Temperature { get; init; }
+    // The measurements are always present and null when SBM does not report them: the Home Assistant templates
+    // then render "None", which MQTT entities show as unknown.
 
-    [JsonPropertyName("humidity")] public required double Humidity { get; init; }
+    [JsonPropertyName("temperature")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+    public required double? Temperature { get; init; }
 
-    [JsonPropertyName("target_temperature")] public required double TargetTemperature { get; init; }
+    [JsonPropertyName("humidity")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+    public required double? Humidity { get; init; }
+
+    [JsonPropertyName("target_temperature")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+    public required double? TargetTemperature { get; init; }
 
     /// <summary>Operating state: the apartment's mode while the zone is active, otherwise <c>idle</c>.</summary>
     [JsonPropertyName("system_mode")] public required string SystemMode { get; init; }
 
-    [JsonPropertyName("last_update")] public required DateTimeOffset LastUpdate { get; init; }
+    [JsonPropertyName("last_update")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+    public required DateTimeOffset? LastUpdate { get; init; }
 }
 
 [JsonSourceGenerationOptions(DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]

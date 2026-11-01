@@ -51,6 +51,41 @@ public sealed class StatePayloadMapperTests
             deviceMessage.Payload);
     }
 
+    [Fact]
+    public void Map_ThermostatWithoutReadings_PublishesNullValues()
+    {
+        // Arrange
+        var apartment = TestApartments.Create(thermostats: TestApartments.LivingRoom() with
+        {
+            Temperature = null,
+            Humidity = null,
+            TargetTemperature = null,
+            LastUpdate = null
+        });
+
+        // Act
+        var deviceMessage = _sut.Map(apartment).Single(x => x.Topic == "sbm_fizikus/devices/1763");
+
+        // Assert
+        Assert.Equal(
+            "{\"id\":1763,\"name\":\"living-room\",\"temperature\":null,\"humidity\":null," +
+            "\"target_temperature\":null,\"system_mode\":\"heating\",\"last_update\":null}",
+            deviceMessage.Payload);
+    }
+
+    [Fact]
+    public void Map_ApartmentWithoutLastUpdate_OmitsIt()
+    {
+        // Arrange
+        var apartment = TestApartments.Create(withOutdoorData: false) with { LastUpdate = null };
+
+        // Act
+        var info = _sut.Map(apartment).Single(x => x.Topic == "sbm_fizikus/apartment_info");
+
+        // Assert
+        Assert.Equal("{\"system_mode\":\"heating\",\"connected\":true}", info.Payload);
+    }
+
     [Theory]
     [InlineData(true, SystemMode.Heating, "heating")]
     [InlineData(true, SystemMode.Cooling, "cooling")]

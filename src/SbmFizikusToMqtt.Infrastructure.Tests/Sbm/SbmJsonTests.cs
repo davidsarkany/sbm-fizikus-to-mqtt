@@ -8,6 +8,9 @@ public sealed class SbmJsonTests
 {
     private static readonly JsonSerializerOptions DateOptions = new() { Converters = { new SbmDateTimeOffsetConverter() } };
 
+    private static readonly JsonSerializerOptions NullableDateOptions =
+        new() { Converters = { new SbmNullableDateTimeOffsetConverter() } };
+
     [Theory]
     [InlineData("2026-10-10 12:45:11.578277", "2026-10-10T12:45:11.5782770+00:00")]
     [InlineData("2026-10-11 12:45:26.411281+00:00", "2026-10-11T12:45:26.4112810+00:00")]
@@ -32,6 +35,37 @@ public sealed class SbmJsonTests
     {
         // Arrange & Act & Assert
         Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<DateTimeOffset>(json, DateOptions));
+    }
+
+    [Theory]
+    [InlineData("null")]
+    [InlineData("\"None\"")]
+    [InlineData("\"\"")]
+    public void NullableDateTimeOffsetConverter_MissingTimestamp_ReturnsNull(string json)
+    {
+        // Arrange & Act
+        var result = JsonSerializer.Deserialize<DateTimeOffset?>(json, NullableDateOptions);
+
+        // Assert
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void NullableDateTimeOffsetConverter_SbmTimestamp_ReadsAsUtc()
+    {
+        // Arrange & Act
+        var result = JsonSerializer.Deserialize<DateTimeOffset?>("\"2026-10-10 12:45:11\"", NullableDateOptions);
+
+        // Assert
+        Assert.Equal(new DateTimeOffset(2026, 10, 10, 12, 45, 11, TimeSpan.Zero), result);
+    }
+
+    [Fact]
+    public void NullableDateTimeOffsetConverter_InvalidTimestamp_ThrowsJsonException()
+    {
+        // Arrange & Act & Assert
+        Assert.Throws<JsonException>(() =>
+            JsonSerializer.Deserialize<DateTimeOffset?>("\"yesterday\"", NullableDateOptions));
     }
 
     [Fact]
@@ -67,26 +101,73 @@ public sealed class SbmJsonTests
 
         // Assert
         var apartment = Assert.Single(result!);
-        Assert.Equal(new SbmApartmentAccessRight
-        {
-            BuildingId = 24,
-            ApartmentId = 702,
-            Name = "BP-TEST-001-101",
-            IsOnline = true
-        }, apartment);
+        Assert.Equal(new SbmApartmentAccessRight { ApartmentId = 702, Name = "BP-TEST-001-101" }, apartment);
     }
 
     [Theory]
-    [InlineData("[[24, 702, \"A\"]]")]
-    [InlineData("[[24, 702, \"A\", true, 1]]")]
-    [InlineData("[[\"24\", 702, \"A\", true]]")]
-    [InlineData("[[24, 702, \"\", true]]")]
+    [InlineData("[[24, 702]]", null)]
+    [InlineData("[[24, 702, null, null]]", null)]
+    [InlineData("[[24, 702, \"A\", true, \"appended\"]]", "A")]
+    public void ApartmentAccessRights_OptionalElementsMissingOrAppended_ReadsIds(string json, string? name)
+    {
+        // Arrange & Act
+        var result = JsonSerializer.Deserialize(json, SbmJsonContext.Default.IReadOnlyListSbmApartmentAccessRight);
+
+        // Assert
+        Assert.Equal(new SbmApartmentAccessRight { ApartmentId = 702, Name = name }, Assert.Single(result!));
+    }
+
+    [Theory]
+    [InlineData("[[24, \"HU\", 1111, \"Budapest\", \"Street 1\", null, null, null]]")]
+    [InlineData("[[24]]")]
+    [InlineData("[[24, \"HU\", 1111, \"Budapest\", \"Street 1\", \"n/a\", \"n/a\", \"\", \"appended\"]]")]
+    public void BuildingAccessRights_WithoutOutdoorSensorOrName_ReadsBuildingId(string json)
+    {
+        // Arrange & Act
+        var result = JsonSerializer.Deserialize(json, SbmJsonContext.Default.IReadOnlyListSbmBuildingAccessRight);
+
+        // Assert
+        var building = Assert.Single(result!);
+        Assert.Equal(24, building.BuildingId);
+        Assert.Null(building.OutdoorTemperature);
+        Assert.Null(building.OutdoorHumidity);
+    }
+
+    [Theory]
+    [InlineData("[[24]]")]
+    [InlineData("[[24, \"702\", \"A\", true]]")]
+    [InlineData("[[24, 702.5]]")]
     [InlineData("[{\"buildingId\": 24}]")]
     public void ApartmentAccessRights_MalformedArray_ThrowsJsonException(string json)
     {
         // Arrange & Act & Assert
         Assert.Throws<JsonException>(() =>
             JsonSerializer.Deserialize(json, SbmJsonContext.Default.IReadOnlyListSbmApartmentAccessRight));
+    }
+
+    [Fact]
+    public void ApartmentData_ThermostatWithoutReadings_ParsesWithNulls()
+    {
+        // Arrange: a thermostat that never reported, next to a working one.
+        const string json = """
+                            {"operationMode": 0, "lastStateUpdate": "None",
+                             "communicationActiveRelayModule": true, "communicationActiveThermostats": true,
+                             "thermostats": [
+                               {"ID": 7, "name": "new", "active": null, "measuredTempDegC": null,
+                                "measuredHumPerc": null, "temperatureSetpointDegC": null, "dewPointDegC": null,
+                                "lastStateUpdate": "None"},
+                               {"ID": 8, "name": "ok", "active": true, "measuredTempDegC": 21.5,
+                                "measuredHumPerc": 40, "temperatureSetpointDegC": 22,
+                                "lastStateUpdate": "2026-10-10 12:45:11"}]}
+                            """;
+
+        // Act
+        var result = JsonSerializer.Deserialize(json, SbmJsonContext.Default.SbmApartmentDataResponse)!;
+
+        // Assert
+        Assert.Null(result.LastStateUpdate);
+        Assert.Equal(new SbmThermostat { Id = 7, Name = "new" }, result.Thermostats[0]);
+        Assert.Equal(21.5, result.Thermostats[1].MeasuredTemperature);
     }
 
     [Fact]

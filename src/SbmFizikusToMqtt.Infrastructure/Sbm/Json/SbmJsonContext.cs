@@ -5,7 +5,7 @@ namespace SbmFizikusToMqtt.Infrastructure.Sbm.Json;
 
 [JsonSourceGenerationOptions(
     NumberHandling = JsonNumberHandling.AllowReadingFromString,
-    Converters = [typeof(SbmDateTimeOffsetConverter)])]
+    Converters = [typeof(SbmDateTimeOffsetConverter), typeof(SbmNullableDateTimeOffsetConverter)])]
 [JsonSerializable(typeof(SbmRequest<SbmLoginPayload>))]
 [JsonSerializable(typeof(SbmRequest<SbmTokenPayload>))]
 [JsonSerializable(typeof(SbmRequest<SbmApartmentAccessRightsPayload>))]
