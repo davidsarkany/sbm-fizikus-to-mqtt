@@ -112,6 +112,8 @@ The configuration keys are unchanged, but the v2 Home Assistant discovery config
 
 To stay on v2, pin the image tag `:2`.
 
+The release tags (`:3`, `:3.0`, `:3.0.4`) are rebuilt monthly from the latest release, so they pick up security fixes of the base image without a new release. `:latest` follows the `main` branch.
+
 ## MQTT interface
 
 `{SbmTopic}` defaults to `sbm_fizikus`, and `{HomeAssistantTopic}` defaults to `homeassistant`.

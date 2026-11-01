@@ -7,6 +7,7 @@ on:
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
+  # Monthly rebuild of the latest release, so its tags (e.g. :3) pick up base image security fixes.
   schedule:
     - cron: "0 2 1 * *"
 
@@ -18,11 +19,50 @@ env:
 
 
 jobs:
+  # What to build: the triggering ref, or on the monthly schedule the latest release tag.
+  release:
+    runs-on: ubuntu-latest
+    outputs:
+      ref: ${{ steps.resolve.outputs.ref }}
+      tag: ${{ steps.resolve.outputs.tag }}
+      sha: ${{ steps.resolve.outputs.sha }}
+    steps:
+      - name: Checkout repository
+        if: github.event_name == 'schedule'
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Resolve the ref to build
+        id: resolve
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT_NAME" != "schedule" ]; then
+            echo "ref=$GITHUB_REF" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # Stable releases only (vX.Y.Z), newest version first.
+          tag=$(git tag --list 'v*.*.*' --sort=-version:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
+          if [ -z "$tag" ]; then
+            echo "No release tag found" >&2
+            exit 1
+          fi
+          echo "Rebuilding release $tag"
+          {
+            echo "ref=refs/tags/$tag"
+            echo "tag=$tag"
+            echo "sha=$(git rev-list -n 1 "$tag")"
+          } >> "$GITHUB_OUTPUT"
+
   test:
+    needs: release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.release.outputs.ref }}
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v6
@@ -51,7 +91,7 @@ jobs:
           done
 
   build:
-    needs: test
+    needs: [ release, test ]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -64,6 +104,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.release.outputs.ref }}
 
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer
@@ -91,19 +133,27 @@ jobs:
 
       # Extract metadata (tags, labels) for Docker
       # https://github.com/docker/metadata-action
+      # The monthly schedule rebuilds the latest release: it moves only that release's semver tags (e.g. :3, :3.0,
+      # :3.0.4), not latest, main or sha-*, which describe the main branch.
       - name: Extract Docker metadata
         id: meta
         uses: docker/metadata-action@v6.2.0
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
-            type=ref,event=branch
+            type=raw,value=latest,enable=${{ github.event_name != 'schedule' && github.ref == 'refs/heads/main' }}
+            type=ref,event=branch,enable=${{ github.event_name != 'schedule' }}
             type=ref,event=pr
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
-            type=sha
+            type=semver,pattern={{version}},value=${{ needs.release.outputs.tag }},enable=${{ github.event_name == 'schedule' }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ needs.release.outputs.tag }},enable=${{ github.event_name == 'schedule' }}
+            type=semver,pattern={{major}},value=${{ needs.release.outputs.tag }},enable=${{ github.event_name == 'schedule' }}
+            type=sha,enable=${{ github.event_name != 'schedule' }}
+          # On the schedule the event's commit is main, not the release being rebuilt.
+          labels: |
+            ${{ github.event_name == 'schedule' && format('org.opencontainers.image.revision={0}', needs.release.outputs.sha) || '' }}
 
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
