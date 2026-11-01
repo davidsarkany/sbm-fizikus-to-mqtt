@@ -7,6 +7,11 @@ on:
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
+    inputs:
+      rebuild_release:
+        description: Rebuild the latest release and move its tags, as the monthly schedule does
+        type: boolean
+        default: false
   # Monthly rebuild of the latest release, so its tags (e.g. :3) pick up base image security fixes.
   schedule:
     - cron: "0 2 1 * *"
@@ -19,16 +24,18 @@ env:
 
 
 jobs:
-  # What to build: the triggering ref, or on the monthly schedule the latest release tag.
+  # What to build: the triggering ref, or on the monthly schedule (or a manual run with rebuild_release) the latest
+  # release tag.
   release:
     runs-on: ubuntu-latest
     outputs:
+      rebuild: ${{ steps.resolve.outputs.rebuild }}
       ref: ${{ steps.resolve.outputs.ref }}
       tag: ${{ steps.resolve.outputs.tag }}
       sha: ${{ steps.resolve.outputs.sha }}
     steps:
       - name: Checkout repository
-        if: github.event_name == 'schedule'
+        if: github.event_name == 'schedule' || inputs.rebuild_release
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
@@ -36,9 +43,10 @@ jobs:
       - name: Resolve the ref to build
         id: resolve
         env:
-          EVENT_NAME: ${{ github.event_name }}
+          REBUILD: ${{ github.event_name == 'schedule' || inputs.rebuild_release == true }}
         run: |
-          if [ "$EVENT_NAME" != "schedule" ]; then
+          echo "rebuild=$REBUILD" >> "$GITHUB_OUTPUT"
+          if [ "$REBUILD" != "true" ]; then
             echo "ref=$GITHUB_REF" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -133,27 +141,27 @@ jobs:
 
       # Extract metadata (tags, labels) for Docker
       # https://github.com/docker/metadata-action
-      # The monthly schedule rebuilds the latest release: it moves only that release's semver tags (e.g. :3, :3.0,
-      # :3.0.4), not latest, main or sha-*, which describe the main branch.
+      # The monthly schedule (or a manual rebuild_release run) rebuilds the latest release: it moves only that
+      # release's semver tags (e.g. :3, :3.0, :3.0.4), not latest, main or sha-*, which describe the main branch.
       - name: Extract Docker metadata
         id: meta
         uses: docker/metadata-action@v6.2.0
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=latest,enable=${{ github.event_name != 'schedule' && github.ref == 'refs/heads/main' }}
-            type=ref,event=branch,enable=${{ github.event_name != 'schedule' }}
+            type=raw,value=latest,enable=${{ needs.release.outputs.rebuild != 'true' && github.ref == 'refs/heads/main' }}
+            type=ref,event=branch,enable=${{ needs.release.outputs.rebuild != 'true' }}
             type=ref,event=pr
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
-            type=semver,pattern={{version}},value=${{ needs.release.outputs.tag }},enable=${{ github.event_name == 'schedule' }}
-            type=semver,pattern={{major}}.{{minor}},value=${{ needs.release.outputs.tag }},enable=${{ github.event_name == 'schedule' }}
-            type=semver,pattern={{major}},value=${{ needs.release.outputs.tag }},enable=${{ github.event_name == 'schedule' }}
-            type=sha,enable=${{ github.event_name != 'schedule' }}
-          # On the schedule the event's commit is main, not the release being rebuilt.
+            type=semver,pattern={{version}},value=${{ needs.release.outputs.tag }},enable=${{ needs.release.outputs.rebuild == 'true' }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ needs.release.outputs.tag }},enable=${{ needs.release.outputs.rebuild == 'true' }}
+            type=semver,pattern={{major}},value=${{ needs.release.outputs.tag }},enable=${{ needs.release.outputs.rebuild == 'true' }}
+            type=sha,enable=${{ needs.release.outputs.rebuild != 'true' }}
+          # On a release rebuild the event's commit is main, not the release being rebuilt.
           labels: |
-            ${{ github.event_name == 'schedule' && format('org.opencontainers.image.revision={0}', needs.release.outputs.sha) || '' }}
+            ${{ needs.release.outputs.rebuild == 'true' && format('org.opencontainers.image.revision={0}', needs.release.outputs.sha) || '' }}
 
       # Release builds report the tag's version (v3.0.4 -> 3.0.4); other builds a development version with the
       # commit, so the image never claims a stale release number.
