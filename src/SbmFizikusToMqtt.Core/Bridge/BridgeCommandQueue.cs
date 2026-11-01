@@ -4,22 +4,29 @@ namespace SbmFizikusToMqtt.Core.Bridge;
 
 /// <summary>
 ///     The single queue feeding <see cref="BridgeProcessor" />. Producers (poll timer, MQTT adapter) enqueue from any
-///     thread; one consumer processes commands in order. At most one <see cref="PollRequested" /> is pending at a
-///     time, so polls cannot pile up while SBM is slow.
+///     thread; one consumer processes commands in order. At most one <see cref="PollRequested" /> and one
+///     <see cref="MqttConnected" /> are pending at a time, so polls cannot pile up while SBM is slow, and a flapping
+///     MQTT connection cannot queue a full refresh per reconnect.
 /// </summary>
 public sealed class BridgeCommandQueue
 {
     private readonly Channel<BridgeCommand> _channel =
         Channel.CreateUnbounded<BridgeCommand>(new UnboundedChannelOptions { SingleReader = true });
 
+    private int _connectedPending;
     private int _pollPending;
 
     public void Enqueue(BridgeCommand command)
     {
-        if (command is PollRequested && Interlocked.Exchange(ref _pollPending, 1) == 1)
-            return;
+        var alreadyPending = command switch
+        {
+            PollRequested => Interlocked.Exchange(ref _pollPending, 1) == 1,
+            MqttConnected => Interlocked.Exchange(ref _connectedPending, 1) == 1,
+            _ => false
+        };
 
-        _channel.Writer.TryWrite(command);
+        if (!alreadyPending)
+            _channel.Writer.TryWrite(command);
     }
 
     public async IAsyncEnumerable<BridgeCommand> ReadAllAsync(
@@ -30,6 +37,8 @@ public sealed class BridgeCommandQueue
         {
             if (command is PollRequested)
                 Interlocked.Exchange(ref _pollPending, 0);
+            else if (command is MqttConnected)
+                Interlocked.Exchange(ref _connectedPending, 0);
 
             yield return command;
         }

@@ -39,6 +39,32 @@ public sealed class BridgeCommandQueueTests
     }
 
     [Fact]
+    public async Task Enqueue_MqttConnectedWhilePending_IsCoalesced()
+    {
+        // Arrange & Act
+        _sut.Enqueue(new MqttConnected());
+        _sut.Enqueue(new MqttConnected());
+        _sut.Enqueue(new PollRequested());
+
+        // Assert
+        Assert.Equal([new MqttConnected(), new PollRequested()], await ReadAsync(2));
+    }
+
+    [Fact]
+    public async Task Enqueue_MqttConnectedAfterPreviousWasRead_IsQueuedAgain()
+    {
+        // Arrange
+        _sut.Enqueue(new MqttConnected());
+        await ReadAsync(1);
+
+        // Act
+        _sut.Enqueue(new MqttConnected());
+
+        // Assert
+        Assert.Equal([new MqttConnected()], await ReadAsync(1));
+    }
+
+    [Fact]
     public async Task Enqueue_PollAfterPreviousPollWasRead_IsQueuedAgain()
     {
         // Arrange

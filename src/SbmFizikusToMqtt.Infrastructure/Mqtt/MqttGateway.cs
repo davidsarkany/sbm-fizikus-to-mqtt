@@ -113,12 +113,25 @@ internal sealed class MqttGateway : BackgroundService, IMqttGateway
             try
             {
                 var connectionLost = await ConnectAsync(stoppingToken);
-                delay = ReconnectBackoff.Initial;
+                var connectedAt = _timeProvider.GetUtcNow();
                 await connectionLost.WaitAsync(stoppingToken);
 
                 // Also set by OnDisconnectedAsync, but a disconnect racing ConnectAsync can run before it marks the
                 // connection as up; this loop is sequenced after both.
                 _status.MarkMqttDisconnected();
+
+                var uptime = _timeProvider.GetUtcNow() - connectedAt;
+                if (uptime >= ReconnectBackoff.StableConnection)
+                {
+                    delay = ReconnectBackoff.Initial;
+                }
+                else
+                {
+                    _logger.LogWarning(
+                        "MQTT connection lost {UptimeSeconds} s after connecting, reconnecting in {Delay}; check that " +
+                        "no other client uses the client id {ClientId}", (long)uptime.TotalSeconds, delay,
+                        _options.ClientId);
+                }
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -130,18 +143,18 @@ internal sealed class MqttGateway : BackgroundService, IMqttGateway
                 _logger.LogWarning(ex, "Cannot connect to MQTT broker {Host}:{Port}, retrying in {Delay}",
                     _options.Host, _options.Port, delay);
                 await DisconnectQuietlyAsync();
-
-                try
-                {
-                    await Task.Delay(delay, _timeProvider, stoppingToken);
-                }
-                catch (OperationCanceledException)
-                {
-                    return;
-                }
-
-                delay = ReconnectBackoff.Next(delay);
             }
+
+            try
+            {
+                await Task.Delay(delay, _timeProvider, stoppingToken);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+
+            delay = ReconnectBackoff.Next(delay);
         }
     }
 

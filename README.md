@@ -248,7 +248,7 @@ Without Alloy, use the values from the OpenTelemetry tile:
 
 ## Resilience
 
-- **MQTT:** the bridge reconnects with exponential backoff (1 s up to 60 s). Rejected subscriptions are logged and retried; the bridge announces itself as online only after both subscriptions are accepted. After every reconnect it republishes its state and discovery, because a broker without persistence loses retained messages.
+- **MQTT:** the bridge reconnects with exponential backoff (1 s up to 60 s). A connection lost within a minute of connecting counts as a failed attempt, so two clients with the same client id do not keep kicking each other off; the bridge logs a warning naming the client id. Reconnects are coalesced: a flapping connection triggers at most one pending refresh. Rejected subscriptions are logged and retried; the bridge announces itself as online only after both subscriptions are accepted. After every reconnect it republishes its state and discovery, because a broker without persistence loses retained messages.
 - **SBM:** transient errors are retried. A rejected session triggers one fresh login. A failed poll is logged and retried on the next one. When no refresh has succeeded for three polling intervals (the same limit as `/health/ready`), the bridge republishes `apartment_info` with the last known values and `connected: false`, so the entities become unavailable instead of showing frozen values; the next successful refresh makes them available again. Without any data since the start, the payload is only `{"system_mode":"unknown","connected":false}`.
 - **Shutdown:** the bridge cancels and waits for both its polling and command-processing loops before stopping the MQTT connection, within the host's shutdown timeout.
 

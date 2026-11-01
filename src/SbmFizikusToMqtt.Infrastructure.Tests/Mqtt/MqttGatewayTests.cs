@@ -116,6 +116,24 @@ public sealed class MqttGatewayTests
     }
 
     [Fact]
+    public async Task ExecuteAsync_SessionTakenOverRepeatedly_BacksOffInsteadOfReconnectingAtOnce()
+    {
+        // Arrange: two gateways with the same client id kick each other off the broker.
+        await using var broker = await InProcessBroker.StartNewAsync();
+        await using var first = new GatewayFixture(broker);
+        await using var second = new GatewayFixture(broker);
+        await first.Gateway.StartAsync(CancellationToken.None);
+        await Eventually.TrueAsync(() => first.ConnectedCount == 1, "the first gateway connected");
+
+        // Act
+        await second.Gateway.StartAsync(CancellationToken.None);
+        await Task.Delay(TimeSpan.FromSeconds(3), TestContext.Current.CancellationToken);
+
+        // Assert: without backoff each gateway reconnected about 60 times per second.
+        Assert.InRange(first.ConnectedCount + second.ConnectedCount, 2, 10);
+    }
+
+    [Fact]
     public async Task OnMessageReceived_SubscribedTopics_EnqueuesCommands()
     {
         // Arrange

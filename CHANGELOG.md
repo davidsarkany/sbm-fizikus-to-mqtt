@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- A lost MQTT connection no longer reconnects immediately. When another client with the same client id took the session over, both clients reconnected about 60 times per second, and every reconnect queued a full SBM refresh and discovery publication that kept running long after the conflict. A connection lost within a minute now counts as a failed attempt for the exponential backoff, a warning names the client id, and reconnect refreshes are coalesced.
 - Entities no longer show frozen values as current while SBM cannot be refreshed (cloud outage, changed password, unreadable responses). After three polling intervals without a successful refresh, `apartment_info` is republished with `connected: false`, which makes the entities unavailable; the next successful refresh restores them.
 
 ## [3.0.4] - 2026-10-30
