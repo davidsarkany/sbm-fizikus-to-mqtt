@@ -5,7 +5,7 @@ All notable changes to SBM Fizikus to MQTT will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [3.0.5] - 2026-11-04
 
 ### Changed
 
@@ -215,6 +215,8 @@ Rewrite of the bridge. The configuration keys are unchanged; the v2 Home Assista
 - Docker and Docker Compose deployment support
 - .NET 10 cross-platform application
 
+[3.0.5]: https://github.com/davidsarkany/sbm-fizikus-to-mqtt/compare/v3.0.4...v3.0.5
+[3.0.4]: https://github.com/davidsarkany/sbm-fizikus-to-mqtt/compare/v3.0.3...v3.0.4
 [3.0.3]: https://github.com/davidsarkany/sbm-fizikus-to-mqtt/compare/v3.0.2...v3.0.3
 [3.0.2]: https://github.com/davidsarkany/sbm-fizikus-to-mqtt/compare/v3.0.0...v3.0.2
 [2.1.0]: https://github.com/USER/sbm-fizikus-to-mqtt/compare/v2.0.1...v2.1.0
