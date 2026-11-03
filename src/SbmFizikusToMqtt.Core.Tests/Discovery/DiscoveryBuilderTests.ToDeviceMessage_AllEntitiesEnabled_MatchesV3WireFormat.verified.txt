@@ -40,6 +40,7 @@
       "state_topic": "sbm_fizikus/apartment_info",
       "value_template": "{{ value_json.outdoor_temperature }}",
       "device_class": "temperature",
+      "state_class": "measurement",
       "unit_of_measurement": "°C",
       "availability": [
         {
@@ -60,6 +61,7 @@
       "state_topic": "sbm_fizikus/apartment_info",
       "value_template": "{{ value_json.outdoor_humidity }}",
       "device_class": "humidity",
+      "state_class": "measurement",
       "unit_of_measurement": "%",
       "availability": [
         {
@@ -107,6 +109,7 @@
       "temperature_state_template": "{{ value_json.target_temperature }}",
       "temperature_command_topic": "sbm_fizikus/devices/1763/set",
       "temperature_command_template": "{{ {'id': 1763, 'value': value } | to_json }}",
+      "qos": 1,
       "temperature_unit": "C",
       "temp_step": 0.5,
       "min_temp": 5,
@@ -246,6 +249,7 @@
       "temperature_state_template": "{{ value_json.target_temperature }}",
       "temperature_command_topic": "sbm_fizikus/devices/1764/set",
       "temperature_command_template": "{{ {'id': 1764, 'value': value } | to_json }}",
+      "qos": 1,
       "temperature_unit": "C",
       "temp_step": 0.5,
       "min_temp": 5,

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- The outdoor temperature and outdoor humidity sensors have `state_class: measurement`, so Home Assistant keeps long-term statistics for them, like for the thermostat sensors.
+- The climate entities use QoS 1, so a target temperature command is not lost silently.
+
 ### Fixed
 
 - The application reported version 3.0.0 in the Home Assistant discovery (`origin.sw_version`) and the telemetry (`service.version`) on every 3.0.x image, because the project version was never bumped. Images now take the version from the git tag (e.g. 3.0.4); builds of `main` report `0.0.0-dev.<commit>`, and local builds `0.0.0-dev`.
