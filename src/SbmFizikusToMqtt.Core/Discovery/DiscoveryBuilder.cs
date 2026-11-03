@@ -172,7 +172,11 @@ internal sealed class DiscoveryBuilder(MqttTopics topics, DiscoveryOptions optio
             // null: the climate entity is the device's main feature and takes the device (room) name.
             ["name"] = null,
             ["action_topic"] = deviceTopic,
-            ["action_template"] = "{{ value_json.system_mode }}",
+            // Values outside Home Assistant's actions and modes (the unknown system mode) are logged as a warning
+            // on every message; "None" resets them to unknown instead. The mode is never mapped to off: the
+            // central system always heats or cools.
+            ["action_template"] =
+                "{{ value_json.system_mode if value_json.system_mode in ['heating', 'cooling', 'idle'] else 'None' }}",
             ["current_temperature_topic"] = deviceTopic,
             ["current_temperature_template"] = "{{ value_json.temperature }}",
             ["current_humidity_topic"] = deviceTopic,
@@ -187,9 +191,9 @@ internal sealed class DiscoveryBuilder(MqttTopics topics, DiscoveryOptions optio
             ["max_temp"] = TargetTemperatureLimits.Maximum,
             ["precision"] = 0.1,
             ["modes"] = new JsonArray("heat", "cool"),
+            // Read-only: the building operator sets the mode centrally, so there is no mode command topic.
             ["mode_state_topic"] = topics.ApartmentInfo,
-            ["mode_state_template"] =
-                "{{ value_json.system_mode | replace('cooling', 'cool') | replace('heating', 'heat') }}"
+            ["mode_state_template"] = "{{ {'heating': 'heat', 'cooling': 'cool'}.get(value_json.system_mode, 'None') }}"
         };
         AddAvailability(config);
         return config;

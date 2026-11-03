@@ -46,6 +46,25 @@ public sealed class DiscoveryBuilderTests
         Snapshot.Match(MqttMessageFormatter.Format(messages));
     }
 
+    [Fact]
+    public void Build_Climate_MapsUnrecognizedModeAndActionToNone()
+    {
+        // Arrange
+        var sut = new DiscoveryBuilder(TestApartments.Topics, AllEnabled);
+
+        // Act
+        var thermostat = sut.Build(TestApartments.Create(thermostats: TestApartments.LivingRoom()))[1];
+
+        // Assert
+        // Home Assistant logs a warning for every value outside its modes and actions; "None" resets them to unknown.
+        var climate = Assert.Single(thermostat.Components, x => x.Key == "climate").Config;
+        Assert.Equal("{{ {'heating': 'heat', 'cooling': 'cool'}.get(value_json.system_mode, 'None') }}",
+            climate["mode_state_template"]!.GetValue<string>());
+        Assert.Equal(
+            "{{ value_json.system_mode if value_json.system_mode in ['heating', 'cooling', 'idle'] else 'None' }}",
+            climate["action_template"]!.GetValue<string>());
+    }
+
     [Theory]
     [InlineData(false, false, false, false)]
     [InlineData(true, false, false, true)]

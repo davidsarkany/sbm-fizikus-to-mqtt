@@ -22,7 +22,7 @@
       "unique_id": "sbm_fizikus-1763_climate",
       "name": null,
       "action_topic": "sbm_fizikus/devices/1763",
-      "action_template": "{{ value_json.system_mode }}",
+      "action_template": "{{ value_json.system_mode if value_json.system_mode in ['heating', 'cooling', 'idle'] else 'None' }}",
       "current_temperature_topic": "sbm_fizikus/devices/1763",
       "current_temperature_template": "{{ value_json.temperature }}",
       "current_humidity_topic": "sbm_fizikus/devices/1763",
@@ -41,7 +41,7 @@
         "cool"
       ],
       "mode_state_topic": "sbm_fizikus/apartment_info",
-      "mode_state_template": "{{ value_json.system_mode | replace('cooling', 'cool') | replace('heating', 'heat') }}",
+      "mode_state_template": "{{ {'heating': 'heat', 'cooling': 'cool'}.get(value_json.system_mode, 'None') }}",
       "availability": [
         {
           "topic": "sbm_fizikus/bridge/state",
