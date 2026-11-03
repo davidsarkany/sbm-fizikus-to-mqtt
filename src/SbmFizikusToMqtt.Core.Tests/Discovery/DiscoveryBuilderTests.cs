@@ -91,6 +91,36 @@ public sealed class DiscoveryBuilderTests
     }
 
     [Fact]
+    public void Build_Climate_UsesQosAtLeastOnce()
+    {
+        // Arrange
+        var sut = new DiscoveryBuilder(TestApartments.Topics, AllEnabled);
+
+        // Act
+        var thermostat = sut.Build(TestApartments.Create(thermostats: TestApartments.LivingRoom()))[1];
+
+        // Assert
+        var climate = Assert.Single(thermostat.Components, x => x.Key == "climate").Config;
+        Assert.Equal(1, climate["qos"]!.GetValue<int>());
+    }
+
+    [Theory]
+    [InlineData("outdoor_temperature")]
+    [InlineData("outdoor_humidity")]
+    public void Build_OutdoorSensor_HasMeasurementStateClass(string key)
+    {
+        // Arrange
+        var sut = new DiscoveryBuilder(TestApartments.Topics, AllEnabled);
+
+        // Act
+        var apartment = sut.Build(TestApartments.Create(thermostats: TestApartments.LivingRoom()))[0];
+
+        // Assert
+        var sensor = Assert.Single(apartment.Components, x => x.Key == key);
+        Assert.Equal("measurement", sensor.Config["state_class"]!.GetValue<string>());
+    }
+
+    [Fact]
     public void Build_AnyOptions_KeepsV2UniqueIds()
     {
         // Arrange

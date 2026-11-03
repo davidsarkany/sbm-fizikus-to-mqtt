@@ -28,9 +28,9 @@ internal sealed class DiscoveryBuilder(MqttTopics topics, DiscoveryOptions optio
         new("system_mode", "System mode", "system_mode", o => o.ApartmentSystemModeEnabled,
             EntityCategory: "diagnostic"),
         new("outdoor_temperature", "Outdoor temperature", "outdoor_temperature",
-            o => o.ApartmentOutdoorTemperatureEnabled, "temperature", Unit: "°C"),
+            o => o.ApartmentOutdoorTemperatureEnabled, "temperature", "measurement", "°C"),
         new("outdoor_humidity", "Outdoor humidity", "outdoor_humidity",
-            o => o.ApartmentOutdoorHumidityEnabled, "humidity", Unit: "%")
+            o => o.ApartmentOutdoorHumidityEnabled, "humidity", "measurement", "%")
     ];
 
     private static readonly SensorDefinition[] ThermostatSensors =
@@ -185,6 +185,8 @@ internal sealed class DiscoveryBuilder(MqttTopics topics, DiscoveryOptions optio
             ["temperature_state_template"] = "{{ value_json.target_temperature }}",
             ["temperature_command_topic"] = topics.DeviceSet(thermostatId),
             ["temperature_command_template"] = "{{ {'id': " + thermostatId + ", 'value': value } | to_json }}",
+            // Setpoint commands must not be lost silently.
+            ["qos"] = 1,
             ["temperature_unit"] = "C",
             ["temp_step"] = TargetTemperatureLimits.Step,
             ["min_temp"] = TargetTemperatureLimits.Minimum,
