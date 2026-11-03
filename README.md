@@ -31,7 +31,7 @@ The bridge uses MQTT **device-based discovery**, so it needs a Home Assistant ve
 | Outdoor temperature | SBM Fizikus | `ApartmentOutdoorTemperatureDiscoveryEnabled` | off |
 | Outdoor humidity | SBM Fizikus | `ApartmentOutdoorHumidityDiscoveryEnabled` | off |
 
-The HVAC mode (heat or cool) is read-only, because the building's central system decides it.
+The HVAC mode (heat or cool) is read-only, because the building operator sets it centrally for the whole building. Home Assistant still shows a mode selector on the climate entity, but choosing a mode there has no effect. When SBM reports a mode the bridge does not recognize, the climate entity shows the mode as unknown.
 
 Turning an entity off removes it from Home Assistant on the next start.
 
